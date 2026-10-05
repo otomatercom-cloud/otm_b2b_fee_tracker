@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare, float_is_zero
+
+_logger = logging.getLogger(__name__)
 
 
 class B2bFeePayment(models.Model):
@@ -114,6 +118,43 @@ class B2bFeePayment(models.Model):
                     raise UserError(_("Could not allocate the full amount to installments."))
                 self.env["otm.b2bfee.payment.alloc"].create(new_allocs)
             rec.state = "posted"
+            if self.env["otm.b2bfee.installment"]._notif_conf()["email_receipt"]:
+                rec._send_receipt(silent=True)
+
+    def _send_receipt(self, silent=False):
+        """Queue the receipt email (PDF attached by the template). Never blocks posting."""
+        self.ensure_one()
+        address = self.college_id.email
+        if not address:
+            if not silent:
+                raise UserError(_("The college has no email address."))
+            return False
+        try:
+            with self.env.cr.savepoint():
+                template = self.env.ref("otm_b2b_fee_tracker.mail_template_payment_receipt")
+                template.send_mail(self.id, force_send=False)
+                self.message_post(body=_("Receipt emailed to %s.", address))
+        except Exception:
+            _logger.exception("Receipt email failed for payment %s", self.id)
+            if not silent:
+                raise UserError(_("The receipt email could not be queued. See the server log."))
+            return False
+        return True
+
+    def action_send_receipt(self):
+        for rec in self:
+            if rec.state != "posted":
+                raise UserError(_("Only posted payments have a receipt."))
+            rec._send_receipt()
+        return {
+            "type": "ir.actions.client", "tag": "display_notification",
+            "params": {"title": _("Receipt"), "message": _("Receipt email queued."),
+                       "type": "success", "sticky": False},
+        }
+
+    def action_print_receipt(self):
+        self.ensure_one()
+        return self.env.ref("otm_b2b_fee_tracker.action_report_payment_receipt").report_action(self)
 
     def action_cancel(self):
         for rec in self:

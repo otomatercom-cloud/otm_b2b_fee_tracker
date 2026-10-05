@@ -5,3 +5,6 @@ from . import plan_line
 from . import student
 from . import installment
 from . import payment
+from . import reminder_log
+from . import installment_notify
+from . import res_config_settings

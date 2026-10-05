@@ -27,6 +27,10 @@
                 <header>
                     <button name="action_post" string="Post Payment" type="object"
                             class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_print_receipt" string="Print Receipt" type="object"
+                            invisible="state != 'posted'"/>
+                    <button name="action_send_receipt" string="Email Receipt" type="object"
+                            invisible="state != 'posted'"/>
                     <button name="action_cancel" string="Cancel" type="object"
                             invisible="state == 'cancel'" confirm="Cancel this payment?"/>
                     <button name="action_draft" string="Reset to Draft" type="object"

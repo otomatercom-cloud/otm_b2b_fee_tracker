@@ -10,4 +10,14 @@
         <field name="interval_type">days</field>
         <field name="active" eval="True"/>
     </record>
+    <record id="cron_b2bfee_send_reminders" model="ir.cron">
+        <field name="name">B2B Fees: send due and overdue reminders</field>
+        <field name="model_id" ref="model_otm_b2bfee_installment"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_send_reminders()</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
 </odoo>

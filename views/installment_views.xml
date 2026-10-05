@@ -29,6 +29,8 @@
         <field name="arch" type="xml">
             <form create="0" delete="0">
                 <header>
+                    <button name="action_send_reminder" string="Send Reminder Now" type="object"
+                            class="btn-primary" invisible="state == 'paid'"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="upcoming,due,partial,paid"/>
                 </header>
@@ -48,6 +50,8 @@
                             <field name="paid_amount"/>
                             <field name="balance"/>
                             <field name="days_overdue"/>
+                            <field name="reminder_count"/>
+                            <field name="last_reminder_on"/>
                         </group>
                     </group>
                     <notebook>
@@ -58,6 +62,19 @@
                                     <field name="currency_id" column_invisible="1"/>
                                     <field name="amount" sum="Total"/>
                                     <field name="payment_state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="page_reminders" string="Reminder History">
+                            <field name="log_ids" readonly="1">
+                                <list>
+                                    <field name="sent_on"/>
+                                    <field name="kind"/>
+                                    <field name="email_sent"/>
+                                    <field name="email_to"/>
+                                    <field name="activity_created"/>
+                                    <field name="escalated"/>
+                                    <field name="note"/>
                                 </list>
                             </field>
                         </page>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_payment_receipt_document">
+        <t t-call="web.external_layout">
+            <t t-set="o" t-value="o.with_context(lang=o.env.lang)"/>
+            <div class="page">
+                <h2>Payment Receipt <span t-field="o.name"/></h2>
+                <div class="row mt-3 mb-3">
+                    <div class="col-6">
+                        <strong>Received from</strong><br/>
+                        <span t-field="o.college_id.name"/><br/>
+                        <t t-if="o.college_id.city"><span t-field="o.college_id.city"/></t>
+                    </div>
+                    <div class="col-6 text-end">
+                        <strong>Date:</strong> <span t-field="o.date"/><br/>
+                        <strong>Mode:</strong> <span t-field="o.payment_mode"/><br/>
+                        <t t-if="o.reference"><strong>Reference:</strong> <span t-field="o.reference"/></t>
+                    </div>
+                </div>
+                <p>
+                    Program: <strong t-field="o.batch_id.program_id.name"/>
+                    (<span t-field="o.batch_id.academic_year"/>) &#8211; Batch
+                    <span t-field="o.batch_id.name"/>
+                </p>
+                <h3>Amount received:
+                    <span t-field="o.amount"
+                          t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                </h3>
+                <table class="table table-sm mt-4">
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Due Date</th>
+                            <th class="text-end">Applied</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="o.alloc_ids" t-as="line">
+                            <td><span t-field="line.installment_id.term_name"/></td>
+                            <td><span t-field="line.installment_id.due_date"/></td>
+                            <td class="text-end">
+                                <span t-field="line.amount"
+                                      t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="table table-sm w-50 ms-auto mt-3">
+                    <tr>
+                        <td>Contract value</td>
+                        <td class="text-end">
+                            <span t-field="o.batch_id.total_amount"
+                                  t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Total collected</td>
+                        <td class="text-end">
+                            <span t-field="o.batch_id.collected"
+                                  t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Balance pending</strong></td>
+                        <td class="text-end">
+                            <strong t-field="o.batch_id.pending"
+                                    t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                        </td>
+                    </tr>
+                </table>
+                <p class="mt-4 text-muted">This is a system generated receipt.</p>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_payment_receipt">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="otm_b2b_fee_tracker.report_payment_receipt_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_payment_receipt" model="ir.actions.report">
+        <field name="name">Payment Receipt</field>
+        <field name="model">otm.b2bfee.payment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">otm_b2b_fee_tracker.report_payment_receipt</field>
+        <field name="report_file">otm_b2b_fee_tracker.report_payment_receipt</field>
+        <field name="print_report_name">'Receipt - %s' % (object.name or 'Draft').replace('/', '_')</field>
+        <field name="binding_model_id" ref="model_otm_b2bfee_payment"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

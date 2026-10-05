@@ -14,6 +14,9 @@
     <menuitem id="menu_b2bfee_payments" name="Payments" parent="menu_b2bfee_root"
               action="action_b2bfee_payment" sequence="50"/>
 
+    <menuitem id="menu_b2bfee_reminder_log" name="Reminder Log" parent="menu_b2bfee_root"
+              action="action_b2bfee_reminder_log" sequence="60"/>
+
     <menuitem id="menu_b2bfee_config" name="Configuration" parent="menu_b2bfee_root"
               sequence="90" groups="group_b2bfee_manager"/>
     <menuitem id="menu_b2bfee_programs" name="Programs" parent="menu_b2bfee_config"

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_b2bfee" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.b2bfee</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="95"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="B2B Fees" name="otm_b2b_fee_tracker"
+                     groups="otm_b2b_fee_tracker.group_b2bfee_manager">
+                    <block title="Reminders" name="b2bfee_reminders_block">
+                        <setting id="b2bfee_due_window" string="Due-soon window"
+                                 help="Installments due within this many days are flagged 'Due Soon'.">
+                            <field name="b2bfee_due_window_days"/>
+                        </setting>
+                        <setting id="b2bfee_before_days" string="Before due date"
+                                 help="Comma separated days before the due date to remind, e.g. 7,3. A reminder is also sent on the due date.">
+                            <field name="b2bfee_reminder_before"/>
+                        </setting>
+                        <setting id="b2bfee_overdue_days_setting" string="After due date"
+                                 help="Comma separated days after the due date to chase, e.g. 1,7,15.">
+                            <field name="b2bfee_overdue_days"/>
+                        </setting>
+                        <setting id="b2bfee_escalate_setting" string="Escalation"
+                                 help="Fee Managers get a task once an installment is overdue by this many days.">
+                            <field name="b2bfee_escalate_from"/>
+                        </setting>
+                    </block>
+                    <block title="Emails" name="b2bfee_emails_block">
+                        <setting id="b2bfee_email_college_setting" string="Email reminders to college"
+                                 help="Send due and overdue reminders to the college contact email.">
+                            <field name="b2bfee_email_college"/>
+                        </setting>
+                        <setting id="b2bfee_email_receipt_setting" string="Email receipt on posting"
+                                 help="Send the PDF receipt to the college when a payment is posted.">
+                            <field name="b2bfee_email_receipt"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

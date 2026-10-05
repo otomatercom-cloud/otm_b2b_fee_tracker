@@ -15,3 +15,5 @@ access_b2bfee_payment_user,b2bfee.payment.user,model_otm_b2bfee_payment,group_b2
 access_b2bfee_payment_manager,b2bfee.payment.manager,model_otm_b2bfee_payment,group_b2bfee_manager,1,1,1,1
 access_b2bfee_payment_alloc_user,b2bfee.payment.alloc.user,model_otm_b2bfee_payment_alloc,group_b2bfee_user,1,1,1,1
 access_b2bfee_payment_alloc_manager,b2bfee.payment.alloc.manager,model_otm_b2bfee_payment_alloc,group_b2bfee_manager,1,1,1,1
+access_b2bfee_reminder_log_user,b2bfee.reminder.log.user,model_otm_b2bfee_reminder_log,group_b2bfee_user,1,0,0,0
+access_b2bfee_reminder_log_manager,b2bfee.reminder.log.manager,model_otm_b2bfee_reminder_log,group_b2bfee_manager,1,1,1,1

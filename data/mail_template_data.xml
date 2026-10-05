@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_template_reminder_upcoming" model="mail.template">
+        <field name="name">B2B Fees: Upcoming / Due Reminder</field>
+        <field name="model_id" ref="model_otm_b2bfee_installment"/>
+        <field name="subject">Fee reminder: {{ object.term_name }} – {{ object.program_id.name }} due {{ format_date(object.due_date) }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email) }}</field>
+        <field name="email_to">{{ object.college_id.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333333;">
+    <p>Dear <t t-out="object.college_id.contact_person or object.college_id.name"/>,</p>
+    <p>
+        This is a friendly reminder that the <strong><t t-out="object.term_name"/></strong> fee for
+        <strong><t t-out="object.program_id.name"/></strong>
+        (<t t-out="object.batch_id.academic_year"/>) is due on
+        <strong><t t-out="format_date(object.due_date)"/></strong>.
+    </p>
+    <table style="border-collapse: collapse; margin: 12px 0;">
+        <tr><td style="padding: 4px 16px 4px 0;">Installment amount</td>
+            <td><strong><t t-out="format_amount(object.amount, object.currency_id)"/></strong></td></tr>
+        <tr><td style="padding: 4px 16px 4px 0;">Paid so far</td>
+            <td><t t-out="format_amount(object.paid_amount, object.currency_id)"/></td></tr>
+        <tr><td style="padding: 4px 16px 4px 0;">Balance due</td>
+            <td><strong><t t-out="format_amount(object.balance, object.currency_id)"/></strong></td></tr>
+    </table>
+    <p>Kindly arrange the payment on or before the due date and share the payment reference with us.</p>
+    <p>Regards,<br/><t t-out="object.company_id.name"/></p>
+</div>
+        </field>
+    </record>
+
+    <record id="mail_template_reminder_overdue" model="mail.template">
+        <field name="name">B2B Fees: Overdue Reminder</field>
+        <field name="model_id" ref="model_otm_b2bfee_installment"/>
+        <field name="subject">Overdue fee: {{ object.term_name }} – {{ object.program_id.name }} ({{ object.days_overdue }} days)</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email) }}</field>
+        <field name="email_to">{{ object.college_id.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333333;">
+    <p>Dear <t t-out="object.college_id.contact_person or object.college_id.name"/>,</p>
+    <p>
+        Our records show that the <strong><t t-out="object.term_name"/></strong> fee for
+        <strong><t t-out="object.program_id.name"/></strong>
+        (<t t-out="object.batch_id.academic_year"/>), which was due on
+        <strong><t t-out="format_date(object.due_date)"/></strong>, is overdue by
+        <strong><t t-out="object.days_overdue"/></strong> day(s).
+    </p>
+    <table style="border-collapse: collapse; margin: 12px 0;">
+        <tr><td style="padding: 4px 16px 4px 0;">Installment amount</td>
+            <td><t t-out="format_amount(object.amount, object.currency_id)"/></td></tr>
+        <tr><td style="padding: 4px 16px 4px 0;">Paid so far</td>
+            <td><t t-out="format_amount(object.paid_amount, object.currency_id)"/></td></tr>
+        <tr><td style="padding: 4px 16px 4px 0;">Outstanding balance</td>
+            <td><strong><t t-out="format_amount(object.balance, object.currency_id)"/></strong></td></tr>
+    </table>
+    <p>We request you to clear the outstanding amount at the earliest. If you have already paid, please share the payment reference so we can reconcile it.</p>
+    <p>Regards,<br/><t t-out="object.company_id.name"/></p>
+</div>
+        </field>
+    </record>
+
+    <record id="mail_template_payment_receipt" model="mail.template">
+        <field name="name">B2B Fees: Payment Receipt</field>
+        <field name="model_id" ref="model_otm_b2bfee_payment"/>
+        <field name="subject">Payment receipt {{ object.name }} – {{ object.college_id.name }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email) }}</field>
+        <field name="email_to">{{ object.college_id.email }}</field>
+        <field name="report_template_ids" eval="[(4, ref('otm_b2b_fee_tracker.action_report_payment_receipt'))]"/>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333333;">
+    <p>Dear <t t-out="object.college_id.contact_person or object.college_id.name"/>,</p>
+    <p>
+        We have received your payment of
+        <strong><t t-out="format_amount(object.amount, object.currency_id)"/></strong>
+        on <t t-out="format_date(object.date)"/> towards
+        <t t-out="object.batch_id.program_id.name"/> (<t t-out="object.batch_id.academic_year"/>).
+        Your receipt is attached.
+    </p>
+    <p>Balance pending for this batch:
+        <strong><t t-out="format_amount(object.batch_id.pending, object.currency_id)"/></strong></p>
+    <p>Thank you,<br/><t t-out="object.company_id.name"/></p>
+</div>
+        </field>
+    </record>
+</odoo>

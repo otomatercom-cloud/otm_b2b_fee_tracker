@@ -38,6 +38,11 @@
         <field name="model_id" ref="model_otm_b2bfee_installment"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+    <record id="rule_b2bfee_reminder_log_company" model="ir.rule">
+        <field name="name">B2B Fee Reminder Log: multi-company</field>
+        <field name="model_id" ref="model_otm_b2bfee_reminder_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
     <record id="rule_b2bfee_payment_company" model="ir.rule">
         <field name="name">B2B Fee Payment: multi-company</field>
         <field name="model_id" ref="model_otm_b2bfee_payment"/>
