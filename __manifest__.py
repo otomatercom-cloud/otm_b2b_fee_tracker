@@ -28,8 +28,16 @@ FIFO allocation and daily installment status refresh.
         "views/payment_views.xml",
         "views/reminder_log_views.xml",
         "views/res_config_settings_views.xml",
+        "views/dashboard_views.xml",
         "views/menus.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "otm_b2b_fee_tracker/static/src/dashboard/dashboard.js",
+            "otm_b2b_fee_tracker/static/src/dashboard/dashboard.xml",
+            "otm_b2b_fee_tracker/static/src/dashboard/dashboard.css",
+        ],
+    },
     "application": True,
     "installable": True,
 }

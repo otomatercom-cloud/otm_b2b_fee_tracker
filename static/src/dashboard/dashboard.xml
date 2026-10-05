@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="otm_b2b_fee_tracker.Dashboard">
+        <div class="o_b2bfee_dash">
+            <header class="b2b-head">
+                <div>
+                    <h1 class="b2b-title">Fee Collection</h1>
+                    <p class="b2b-sub">B2B college fee tracking</p>
+                </div>
+                <div class="b2b-filters" t-if="state.data">
+                    <select class="form-select" t-on-change="(ev) => this.onFilterChange('academic_year', ev)">
+                        <option value="">All years</option>
+                        <t t-foreach="state.data.options.years" t-as="y" t-key="y">
+                            <option t-att-value="y" t-att-selected="isSel('academic_year', y)"><t t-esc="y"/></option>
+                        </t>
+                    </select>
+                    <select class="form-select" t-on-change="(ev) => this.onFilterChange('college_id', ev)">
+                        <option value="">All colleges</option>
+                        <t t-foreach="state.data.options.colleges" t-as="c" t-key="c.id">
+                            <option t-att-value="c.id" t-att-selected="isSel('college_id', c.id)"><t t-esc="c.name"/></option>
+                        </t>
+                    </select>
+                    <select class="form-select" t-on-change="(ev) => this.onFilterChange('program_id', ev)">
+                        <option value="">All programs</option>
+                        <t t-foreach="state.data.options.programs" t-as="p" t-key="p.id">
+                            <option t-att-value="p.id" t-att-selected="isSel('program_id', p.id)"><t t-esc="p.name"/></option>
+                        </t>
+                    </select>
+                    <button class="btn btn-secondary" t-on-click="load" title="Refresh"><i class="fa fa-refresh"/></button>
+                </div>
+            </header>
+
+            <div t-if="state.loading and !state.data" class="b2b-empty">Loading…</div>
+
+            <t t-if="state.data">
+                <div t-att-class="{'b2b-body': true, 'b2b-busy': state.loading}">
+
+                    <!-- KPI row -->
+                    <section class="b2b-kpis">
+                        <button class="b2b-kpi" t-on-click="openBatches">
+                            <span class="b2b-kpi-label">Contract value</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.contract)"/>
+                            <span class="b2b-kpi-note"><t t-esc="state.data.kpis.students"/> active students · <t t-esc="state.data.kpis.colleges"/> colleges</span>
+                        </button>
+                        <button class="b2b-kpi" t-on-click="openPayments">
+                            <span class="b2b-kpi-label">Collected</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.collected)"/>
+                            <span class="b2b-kpi-note"><t t-esc="state.data.kpis.collection_pct"/>% of contract</span>
+                            <span class="b2b-meter"><span class="b2b-meter-fill" t-attf-style="width: #{meterWidth}%"/></span>
+                        </button>
+                        <button class="b2b-kpi" t-on-click="openPending">
+                            <span class="b2b-kpi-label">Pending</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.pending)"/>
+                            <span class="b2b-kpi-note">across all unpaid terms</span>
+                        </button>
+                        <button class="b2b-kpi b2b-kpi-alert" t-on-click="openOverdue">
+                            <span class="b2b-kpi-label"><i class="fa fa-times-circle"/> Overdue</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.overdue)"/>
+                            <span class="b2b-kpi-note"><t t-esc="state.data.kpis.overdue_count"/> installment(s) past due</span>
+                        </button>
+                        <button class="b2b-kpi" t-on-click="() => this.openDueSoon(7)">
+                            <span class="b2b-kpi-label">Due in 7 days</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.due_7)"/>
+                            <span class="b2b-kpi-note">to chase this week</span>
+                        </button>
+                        <button class="b2b-kpi" t-on-click="() => this.openDueSoon(30)">
+                            <span class="b2b-kpi-label">Due in 30 days</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.due_30)"/>
+                            <span class="b2b-kpi-note">expected this month</span>
+                        </button>
+                    </section>
+
+                    <!-- Trend + ageing -->
+                    <section class="b2b-row b2b-row-2-1">
+                        <div class="b2b-card">
+                            <div class="b2b-card-head">
+                                <h2>Expected vs collected</h2>
+                                <button class="b2b-link" t-on-click="() => this.state.trendTable = !this.state.trendTable">
+                                    <t t-esc="state.trendTable ? 'Show chart' : 'View as table'"/>
+                                </button>
+                            </div>
+                            <div class="b2b-legend">
+                                <span><i class="b2b-swatch b2b-neutral"/>Expected (by due month)</span>
+                                <span><i class="b2b-swatch b2b-blue"/>Collected (by payment month)</span>
+                            </div>
+                            <div t-if="!state.trendTable" class="b2b-trend">
+                                <t t-foreach="state.data.trend" t-as="m" t-key="m.label">
+                                    <div class="b2b-trend-col" t-on-mouseenter="(ev) => this.tipTrend(ev, m)"
+                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <div class="b2b-trend-bars">
+                                            <span class="b2b-bar b2b-neutral" t-attf-style="height: #{pct(m.expected, trendMax)}%"/>
+                                            <span class="b2b-bar b2b-blue" t-attf-style="height: #{pct(m.collected, trendMax)}%"/>
+                                        </div>
+                                        <span class="b2b-axis" t-esc="m.label"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <table t-else="" class="b2b-table">
+                                <thead><tr><th>Month</th><th class="num">Expected</th><th class="num">Collected</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.trend" t-as="m" t-key="m.label">
+                                        <td t-esc="m.label"/>
+                                        <td class="num" t-esc="fmt(m.expected)"/>
+                                        <td class="num" t-esc="fmt(m.collected)"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Overdue ageing</h2></div>
+                            <div class="b2b-hbars">
+                                <t t-foreach="state.data.ageing" t-as="a" t-key="a.label">
+                                    <div class="b2b-hrow" t-on-mouseenter="(ev) => this.tipAmount(ev, a.label, a.count + ' installment(s)', a.amount, 'var(--b2b-critical)')"
+                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <span class="b2b-hlabel" t-esc="a.label"/>
+                                        <span class="b2b-htrack"><span class="b2b-hfill b2b-critical" t-attf-style="width: #{pct(a.amount, ageingMax)}%; opacity: #{0.4 + 0.2 * a_index}"/></span>
+                                        <span class="b2b-hvalue" t-esc="compact(a.amount)"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <p class="b2b-foot">Balance past due date, by days late.</p>
+                        </div>
+                    </section>
+
+                    <!-- Colleges + terms -->
+                    <section class="b2b-row b2b-row-1-1">
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Pending by college</h2></div>
+                            <div class="b2b-hbars" t-if="topColleges.length">
+                                <t t-foreach="topColleges" t-as="c" t-key="c.id">
+                                    <button class="b2b-hrow b2b-hrow-btn" t-on-click="() => this.openCollegeDues(c)"
+                                         t-on-mouseenter="(ev) => this.tipAmount(ev, c.name, 'Pending', c.pending, 'var(--b2b-blue)')"
+                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <span class="b2b-hlabel" t-esc="c.name"/>
+                                        <span class="b2b-htrack"><span class="b2b-hfill b2b-blue" t-attf-style="width: #{pct(c.pending, collegeMax)}%"/></span>
+                                        <span class="b2b-hvalue" t-esc="compact(c.pending)"/>
+                                    </button>
+                                </t>
+                            </div>
+                            <div t-else="" class="b2b-empty">Nothing pending.</div>
+                        </div>
+
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Collection by term</h2></div>
+                            <div class="b2b-legend">
+                                <span><i class="b2b-swatch b2b-blue"/>Collected</span>
+                                <span><i class="b2b-swatch b2b-neutral"/>Pending</span>
+                            </div>
+                            <div class="b2b-hbars">
+                                <t t-foreach="state.data.by_term" t-as="term" t-key="term.label">
+                                    <div class="b2b-hrow" t-on-mouseenter="(ev) => this.tipSplit(ev, term)"
+                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <span class="b2b-hlabel" t-esc="term.label"/>
+                                        <span class="b2b-htrack b2b-split" t-attf-style="width: #{pct(term.amount, termMax)}%">
+                                            <span class="b2b-hfill b2b-blue" t-attf-style="flex: #{term.collected}"/>
+                                            <span class="b2b-hfill b2b-neutral" t-attf-style="flex: #{term.pending}"/>
+                                        </span>
+                                        <span class="b2b-hvalue" t-esc="compact(term.collected) + ' / ' + compact(term.amount)"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Program + forecast -->
+                    <section class="b2b-row b2b-row-1-1">
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Collection by program</h2></div>
+                            <div class="b2b-legend">
+                                <span><i class="b2b-swatch b2b-blue"/>Collected</span>
+                                <span><i class="b2b-swatch b2b-neutral"/>Pending</span>
+                            </div>
+                            <div class="b2b-hbars">
+                                <t t-foreach="state.data.by_program" t-as="p" t-key="p.label">
+                                    <div class="b2b-hrow" t-on-mouseenter="(ev) => this.tipSplit(ev, p)"
+                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <span class="b2b-hlabel" t-esc="p.label"/>
+                                        <span class="b2b-htrack b2b-split" t-attf-style="width: #{pct(p.amount, programMax)}%">
+                                            <span class="b2b-hfill b2b-blue" t-attf-style="flex: #{p.collected}"/>
+                                            <span class="b2b-hfill b2b-neutral" t-attf-style="flex: #{p.pending}"/>
+                                        </span>
+                                        <span class="b2b-hvalue" t-esc="compact(p.collected) + ' / ' + compact(p.amount)"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>90-day forecast</h2></div>
+                            <div class="b2b-hbars">
+                                <t t-foreach="state.data.forecast" t-as="f" t-key="f.label">
+                                    <div class="b2b-hrow" t-on-mouseenter="(ev) => this.tipAmount(ev, f.label, 'To collect', f.amount, f.overdue ? 'var(--b2b-critical)' : 'var(--b2b-blue)')"
+                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <span class="b2b-hlabel">
+                                            <i t-if="f.overdue" class="fa fa-times-circle b2b-icon-critical"/>
+                                            <t t-esc="f.label"/>
+                                        </span>
+                                        <span class="b2b-htrack"><span t-att-class="'b2b-hfill ' + (f.overdue ? 'b2b-critical' : 'b2b-blue')" t-attf-style="width: #{pct(f.amount, forecastMax)}%"/></span>
+                                        <span class="b2b-hvalue" t-esc="compact(f.amount)"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <p class="b2b-foot">Outstanding balance by due date; overdue is the carry-over.</p>
+                        </div>
+                    </section>
+
+                    <!-- College performance -->
+                    <section class="b2b-card">
+                        <div class="b2b-card-head">
+                            <h2>College performance</h2>
+                            <span class="b2b-foot">Click a header to sort · click a college for its pending dues</span>
+                        </div>
+                        <div class="b2b-scroll">
+                            <table class="b2b-table">
+                                <thead>
+                                    <tr>
+                                        <th><button class="b2b-th" t-on-click="() => this.setSort('name')">College</button></th>
+                                        <th class="num"><button class="b2b-th" t-on-click="() => this.setSort('contract')">Contract</button></th>
+                                        <th class="num"><button class="b2b-th" t-on-click="() => this.setSort('collected')">Collected</button></th>
+                                        <th class="num"><button class="b2b-th" t-on-click="() => this.setSort('pending')">Pending</button></th>
+                                        <th class="num"><button class="b2b-th" t-on-click="() => this.setSort('overdue')">Overdue</button></th>
+                                        <th class="num"><button class="b2b-th" t-on-click="() => this.setSort('collection_pct')">Collected %</button></th>
+                                        <th class="num"><button class="b2b-th" t-on-click="() => this.setSort('ontime_pct')">On-time %</button></th>
+                                        <th class="num"><button class="b2b-th" t-on-click="() => this.setSort('avg_delay')">Avg delay</button></th>
+                                        <th>Health</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="sortedColleges" t-as="c" t-key="c.id">
+                                        <td><button class="b2b-link" t-on-click="() => this.openCollegeDues(c)" t-esc="c.name"/></td>
+                                        <td class="num" t-esc="fmt(c.contract)"/>
+                                        <td class="num" t-esc="fmt(c.collected)"/>
+                                        <td class="num" t-esc="fmt(c.pending)"/>
+                                        <td class="num" t-esc="fmt(c.overdue)"/>
+                                        <td class="num" t-esc="c.collection_pct + '%'"/>
+                                        <td class="num" t-esc="c.ontime_pct === null ? '–' : c.ontime_pct + '%'"/>
+                                        <td class="num" t-esc="c.avg_delay === null ? '–' : c.avg_delay + ' d'"/>
+                                        <td>
+                                            <span t-attf-class="b2b-health b2b-health-#{c.health}">
+                                                <i t-attf-class="fa #{health(c.health).icon}"/>
+                                                <t t-esc="health(c.health).label"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Lists -->
+                    <section class="b2b-row b2b-row-1-1">
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Upcoming dues (30 days)</h2></div>
+                            <table class="b2b-table" t-if="state.data.upcoming.length">
+                                <thead><tr><th>College</th><th>Term</th><th>Due</th><th class="num">Balance</th><th/></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.upcoming" t-as="r" t-key="r.id">
+                                        <td><button class="b2b-link" t-on-click="() => this.openInstallment(r.id)" t-esc="r.college"/></td>
+                                        <td t-esc="r.term + ' · ' + r.program"/>
+                                        <td><t t-esc="r.due_date"/> <span class="b2b-chip" t-esc="r.days === 0 ? 'today' : 'in ' + r.days + ' d'"/></td>
+                                        <td class="num" t-esc="fmt(r.balance)"/>
+                                        <td><button class="btn btn-sm btn-secondary" t-on-click="() => this.sendReminder(r.id)">Remind</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div t-else="" class="b2b-empty">No dues in the next 30 days.</div>
+                        </div>
+
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Most overdue</h2></div>
+                            <table class="b2b-table" t-if="state.data.overdue_list.length">
+                                <thead><tr><th>College</th><th>Term</th><th>Late</th><th class="num">Balance</th><th/></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.overdue_list" t-as="r" t-key="r.id">
+                                        <td><button class="b2b-link" t-on-click="() => this.openInstallment(r.id)" t-esc="r.college"/></td>
+                                        <td t-esc="r.term + ' · ' + r.program"/>
+                                        <td><i class="fa fa-times-circle b2b-icon-critical"/> <t t-esc="-r.days"/> d</td>
+                                        <td class="num" t-esc="fmt(r.balance)"/>
+                                        <td><button class="btn btn-sm btn-secondary" t-on-click="() => this.sendReminder(r.id)">Remind</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div t-else="" class="b2b-empty">No overdue installments. 🎉</div>
+                        </div>
+                    </section>
+                </div>
+            </t>
+
+            <div t-if="state.tip.show" class="b2b-tip" t-attf-style="left: #{state.tip.x}px; top: #{state.tip.y}px">
+                <div class="b2b-tip-title" t-esc="state.tip.title"/>
+                <div t-foreach="state.tip.rows" t-as="row" t-key="row_index" class="b2b-tip-row">
+                    <i class="b2b-swatch" t-attf-style="background: #{row.color}"/>
+                    <span t-esc="row.label"/>
+                    <strong t-esc="row.value"/>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

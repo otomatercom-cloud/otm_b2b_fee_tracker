@@ -3,6 +3,8 @@
     <menuitem id="menu_b2bfee_root" name="B2B Fees" sequence="45"
               groups="group_b2bfee_user"/>
 
+    <menuitem id="menu_b2bfee_dashboard" name="Dashboard" parent="menu_b2bfee_root"
+              action="action_b2bfee_dashboard" sequence="5"/>
     <menuitem id="menu_b2bfee_colleges" name="Colleges" parent="menu_b2bfee_root"
               action="action_b2bfee_college" sequence="10"/>
     <menuitem id="menu_b2bfee_batches" name="Batches" parent="menu_b2bfee_root"
