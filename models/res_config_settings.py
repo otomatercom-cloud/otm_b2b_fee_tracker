@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import fields, models
+from odoo.exceptions import AccessError, UserError
+from odoo.tools import convert_file
 
 YES_NO = [("yes", "Yes"), ("no", "No")]
 
@@ -72,3 +74,96 @@ class ResConfigSettings(models.TransientModel):
             "params": {"title": "WhatsApp test", "message": message,
                        "type": "success" if result["sent"] else "danger", "sticky": not result["sent"]},
         }
+
+    # ------------------------------------------------------------------
+    # Demo data and data clean-up
+    # ------------------------------------------------------------------
+    def _b2bfee_check_manager(self):
+        if not self.env.user.has_group("otm_b2b_fee_tracker.group_b2bfee_manager"):
+            raise AccessError(self.env._("Only B2B Fee managers can load or remove data."))
+
+    def _b2bfee_demo_ids(self, model):
+        data = self.env["ir.model.data"].sudo().search([
+            ("module", "=", "otm_b2b_fee_tracker"), ("model", "=", model),
+            ("name", "=like", "demo\\_%")])
+        return data.mapped("res_id")
+
+    def _b2bfee_notify(self, message, kind="success"):
+        return {
+            "type": "ir.actions.client", "tag": "display_notification",
+            "params": {"message": message, "type": kind, "sticky": False,
+                       "next": {"type": "ir.actions.client", "tag": "reload"}},
+        }
+
+    def action_b2bfee_load_demo(self):
+        self.ensure_one()
+        self._b2bfee_check_manager()
+        if self._b2bfee_demo_ids("otm.b2bfee.college"):
+            raise UserError(self.env._("Demo data is already loaded. Remove it first to reload."))
+        convert_file(self.sudo().env, "otm_b2b_fee_tracker", "data/demo_data.xml",
+                     {}, mode="init", noupdate=True, kind="demo")
+        return self._b2bfee_notify(self.env._("Demo data loaded."))
+
+    def _b2bfee_wipe(self, demo_only):
+        """Delete fee data with SQL: payments are locked against unlink on purpose."""
+        cr = self.env.cr
+        Model = self.env
+        if demo_only:
+            colleges = self._b2bfee_demo_ids("otm.b2bfee.college")
+            programs = self._b2bfee_demo_ids("otm.b2bfee.program")
+            batches = Model["otm.b2bfee.batch"].sudo().with_context(active_test=False).search(
+                ["|", ("id", "in", self._b2bfee_demo_ids("otm.b2bfee.batch")),
+                 ("college_id", "in", colleges)]).ids
+        else:
+            colleges = Model["otm.b2bfee.college"].sudo().with_context(active_test=False).search([]).ids
+            programs = Model["otm.b2bfee.program"].sudo().with_context(active_test=False).search([]).ids
+            batches = Model["otm.b2bfee.batch"].sudo().search([]).ids
+        pays = Model["otm.b2bfee.payment"].sudo().search(
+            ["|", ("batch_id", "in", batches), ("college_id", "in", colleges)]).ids
+        insts = Model["otm.b2bfee.installment"].sudo().search([("batch_id", "in", batches)]).ids
+        steps = [
+            ("otm_b2bfee_payment_alloc", "payment_id = ANY(%s) OR installment_id = ANY(%s)", (pays, insts)),
+            ("otm_b2bfee_reminder_log", "installment_id = ANY(%s)", (insts,)),
+            ("otm_b2bfee_payment", "id = ANY(%s)", (pays,)),
+            ("otm_b2bfee_installment", "id = ANY(%s)", (insts,)),
+            ("otm_b2bfee_plan_line", "batch_id = ANY(%s)", (batches,)),
+            ("otm_b2bfee_student", "batch_id = ANY(%s)", (batches,)),
+            ("otm_b2bfee_batch", "id = ANY(%s)", (batches,)),
+            ("otm_b2bfee_college", "id = ANY(%s)", (colleges,)),
+            ("otm_b2bfee_program", "id = ANY(%s)", (programs,)),
+        ]
+        models = {
+            "otm_b2bfee_payment": ("otm.b2bfee.payment", pays),
+            "otm_b2bfee_installment": ("otm.b2bfee.installment", insts),
+            "otm_b2bfee_batch": ("otm.b2bfee.batch", batches),
+            "otm_b2bfee_college": ("otm.b2bfee.college", colleges),
+        }
+        # chatter, activities and external ids that point at the rows
+        for model, ids in models.values():
+            cr.execute("DELETE FROM mail_message WHERE model = %s AND res_id = ANY(%s)", (model, ids))
+            cr.execute("DELETE FROM mail_activity WHERE res_model = %s AND res_id = ANY(%s)", (model, ids))
+            cr.execute("DELETE FROM mail_followers WHERE res_model = %s AND res_id = ANY(%s)", (model, ids))
+        for table, where, params in steps:
+            cr.execute("DELETE FROM %s WHERE %s" % (table, where), params)
+        cr.execute("""DELETE FROM ir_model_data WHERE module = 'otm_b2b_fee_tracker'
+                      AND model LIKE 'otm.b2bfee.%%' AND name LIKE 'demo\\_%%'""")
+        self.env.invalidate_all()
+        return len(colleges), len(batches), len(pays)
+
+    def action_b2bfee_remove_demo(self):
+        self.ensure_one()
+        self._b2bfee_check_manager()
+        if not self._b2bfee_demo_ids("otm.b2bfee.college"):
+            raise UserError(self.env._("There is no demo data to remove."))
+        colleges, batches, pays = self._b2bfee_wipe(demo_only=True)
+        return self._b2bfee_notify(self.env._(
+            "Demo data removed: %(c)s colleges, %(b)s batches, %(p)s payments. Your own data was not touched.",
+            c=colleges, b=batches, p=pays))
+
+    def action_b2bfee_remove_all(self):
+        self.ensure_one()
+        self._b2bfee_check_manager()
+        colleges, batches, pays = self._b2bfee_wipe(demo_only=False)
+        return self._b2bfee_notify(self.env._(
+            "All fee data deleted: %(c)s colleges, %(b)s batches, %(p)s payments.",
+            c=colleges, b=batches, p=pays), "warning")

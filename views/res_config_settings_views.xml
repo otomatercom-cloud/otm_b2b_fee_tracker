@@ -73,6 +73,26 @@
                                     string="Send test message" class="btn-link"/>
                         </setting>
                     </block>
+                    <block title="Data" name="b2bfee_data_block" groups="otm_b2b_fee_tracker.group_b2bfee_manager">
+                        <setting id="b2bfee_demo_setting" string="Demo data"
+                                 help="Sample colleges, batches and payments so you can try the dashboard. Removing demo data never touches your own records.">
+                            <div class="mt8">
+                                <button name="action_b2bfee_load_demo" type="object" string="Load demo data"
+                                        class="btn-secondary me-2"/>
+                                <button name="action_b2bfee_remove_demo" type="object" string="Remove demo data"
+                                        class="btn-secondary"
+                                        confirm="Remove the demo colleges, batches and payments?"/>
+                            </div>
+                        </setting>
+                        <setting id="b2bfee_wipe_setting" string="Delete all fee data"
+                                 help="Permanently deletes every college, batch, student, installment, payment and reminder log. Programs are removed too. This cannot be undone.">
+                            <div class="mt8">
+                                <button name="action_b2bfee_remove_all" type="object" string="Delete all data"
+                                        class="btn-danger"
+                                        confirm="This permanently deletes ALL colleges, batches, students, installments and payments. Continue?"/>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>
