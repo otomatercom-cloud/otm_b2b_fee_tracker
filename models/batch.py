@@ -36,6 +36,10 @@ class B2bFeeBatch(models.Model):
     installment_ids = fields.One2many(
         "otm.b2bfee.installment", "batch_id", string="Installments")
 
+    student_total = fields.Integer(
+        string="Number of Students", tracking=True,
+        help="Enter the head-count here when you do not track individual students. "
+             "If students are entered one by one, their count is used instead.")
     student_count = fields.Integer(
         string="Active Students", compute="_compute_students", store=True)
     total_amount = fields.Monetary(
@@ -54,16 +58,24 @@ class B2bFeeBatch(models.Model):
     _batch_uniq = models.Constraint(
         "unique(college_id, program_id, academic_year)",
         "A batch for this college, program and academic year already exists.")
+    _students_positive = models.Constraint(
+        "check(student_total >= 0)", "Number of students cannot be negative.")
     _fee_positive = models.Constraint(
         "check(fee_per_student >= 0)", "Fee per student cannot be negative.")
 
     # ------------------------------------------------------------------ computes
-    @api.depends("student_ids.state", "student_ids.fee")
+    @api.depends("student_ids.state", "student_ids.fee", "student_total", "fee_per_student")
     def _compute_students(self):
         for rec in self:
             active = rec.student_ids.filtered(lambda s: s.state == "active")
-            rec.student_count = len(active)
-            rec.total_amount = sum(active.mapped("fee"))
+            if active:  # students entered one by one: exact fees (with discounts)
+                rec.student_count = len(active)
+                rec.total_amount = sum(active.mapped("fee"))
+            else:  # head-count only
+                rec.student_count = rec.student_total
+                rec.total_amount = rec.currency_id.round(
+                    rec.student_total * rec.fee_per_student) if rec.currency_id \
+                    else rec.student_total * rec.fee_per_student
 
     @api.depends("installment_ids.paid_amount", "installment_ids.balance", "total_amount")
     def _compute_collection(self):
@@ -140,7 +152,7 @@ class B2bFeeBatch(models.Model):
                     "Payment terms must total 100%% (currently %(p).2f%%).",
                     p=rec.plan_percent))
             if not rec.student_count:
-                raise UserError(_("Register at least one active student before confirming."))
+                raise UserError(_("Enter the number of students before confirming."))
             rec._generate_installments()
             rec.state = "running"
 

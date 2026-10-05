@@ -9,6 +9,12 @@
             <xpath expr="//form" position="inside">
                 <app string="B2B Fees" name="otm_b2b_fee_tracker"
                      groups="otm_b2b_fee_tracker.group_b2bfee_manager">
+                    <block title="Students" name="b2bfee_students_block">
+                        <setting id="b2bfee_students_setting" string="Enter individual students"
+                                 help="Off: just enter the number of students in each batch. On: you can also register students one by one, with per-student discounts; the batch then uses the registered students.">
+                            <field name="group_b2bfee_students"/>
+                        </setting>
+                    </block>
                     <block title="Reminders" name="b2bfee_reminders_block">
                         <setting id="b2bfee_due_window" string="Due-soon window"
                                  help="Installments due within this many days are flagged 'Due Soon'.">

@@ -61,8 +61,7 @@
         <field name="program_id" ref="demo_program_dipifr"/>
         <field name="academic_year">2026-27</field>
         <field name="fee_per_student">15000</field>
-        <field name="student_ids" eval="[(0, 0, {'name': f + ' ' + s, 'phone': '98470' + str(10000 + n)})
-            for n, (f, s) in enumerate([(f, s) for f in ['Anjali', 'Arjun', 'Fathima', 'Rahul', 'Sneha', 'Vishnu', 'Aswathy', 'Midhun', 'Neha', 'Adil'] for s in ['Nair', 'Menon']])]"/>
+        <field name="student_total">20</field>
         <field name="plan_line_ids" eval="[
             (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 34, 'due_date': (datetime.today() + timedelta(days=-60)).strftime('%Y-%m-%d')}),
             (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 33, 'due_date': (datetime.today() + timedelta(days=30)).strftime('%Y-%m-%d')}),
@@ -75,8 +74,7 @@
         <field name="program_id" ref="demo_program_dipifr"/>
         <field name="academic_year">2026-27</field>
         <field name="fee_per_student">15000</field>
-        <field name="student_ids" eval="[(0, 0, {'name': f + ' ' + s, 'phone': '98950' + str(10000 + n)})
-            for n, (f, s) in enumerate([(f, s) for f in ['Akhil', 'Devika', 'Hari', 'Lakshmi', 'Nikhil', 'Parvathy', 'Sreejith', 'Tessa', 'Varun', 'Zainab'] for s in ['Pillai', 'Kurian', 'Joseph']])]"/>
+        <field name="student_total">30</field>
         <field name="plan_line_ids" eval="[
             (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 40, 'due_date': (datetime.today() + timedelta(days=-45)).strftime('%Y-%m-%d')}),
             (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 30, 'due_date': (datetime.today() + timedelta(days=-5)).strftime('%Y-%m-%d')}),
@@ -89,8 +87,7 @@
         <field name="program_id" ref="demo_program_cma"/>
         <field name="academic_year">2026-27</field>
         <field name="fee_per_student">12000</field>
-        <field name="student_ids" eval="[(0, 0, {'name': f + ' ' + s, 'phone': '97460' + str(10000 + n)})
-            for n, (f, s) in enumerate([(f, s) for f in ['Abhijith', 'Binu', 'Divya', 'Jibin', 'Reshma'] for s in ['Thomas', 'Varghese', 'George', 'Mathew', 'Philip']])]"/>
+        <field name="student_total">25</field>
         <field name="plan_line_ids" eval="[
             (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 50, 'due_date': (datetime.today() + timedelta(days=-20)).strftime('%Y-%m-%d')}),
             (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 50, 'due_date': (datetime.today() + timedelta(days=40)).strftime('%Y-%m-%d')})]"/>
@@ -102,8 +99,7 @@
         <field name="program_id" ref="demo_program_dipifr"/>
         <field name="academic_year">2026-27</field>
         <field name="fee_per_student">15000</field>
-        <field name="student_ids" eval="[(0, 0, {'name': f + ' ' + s, 'phone': '94470' + str(10000 + n)})
-            for n, (f, s) in enumerate([(f, s) for f in ['Amal', 'Bhavya', 'Cherian', 'Diya', 'Eldho', 'Gayathri', 'Irfan', 'Keerthana', 'Liya', 'Manu'] for s in ['Das', 'Raj']])]"/>
+        <field name="student_total">20</field>
         <field name="plan_line_ids" eval="[
             (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 33, 'due_date': (datetime.today() + timedelta(days=5)).strftime('%Y-%m-%d')}),
             (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 33, 'due_date': (datetime.today() + timedelta(days=65)).strftime('%Y-%m-%d')}),
@@ -116,8 +112,7 @@
         <field name="program_id" ref="demo_program_cma"/>
         <field name="academic_year">2026-27</field>
         <field name="fee_per_student">12000</field>
-        <field name="student_ids" eval="[(0, 0, {'name': f + ' Mathew', 'phone': '99610' + str(10000 + n)})
-            for n, f in enumerate(['Alex', 'Betsy', 'Clint', 'Deepa', 'Ebin', 'Feba', 'Giji', 'Hanna', 'Ivan', 'Jessy'])]"/>
+        <field name="student_total">10</field>
         <field name="plan_line_ids" eval="[
             (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 50, 'due_date': (datetime.today() + timedelta(days=-90)).strftime('%Y-%m-%d')}),
             (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 50, 'due_date': (datetime.today() + timedelta(days=-30)).strftime('%Y-%m-%d')})]"/>

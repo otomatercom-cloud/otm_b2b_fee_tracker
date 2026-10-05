@@ -10,7 +10,8 @@
     <menuitem id="menu_b2bfee_batches" name="Batches" parent="menu_b2bfee_root"
               action="action_b2bfee_batch" sequence="20"/>
     <menuitem id="menu_b2bfee_students" name="Students" parent="menu_b2bfee_root"
-              action="action_b2bfee_student" sequence="30"/>
+              action="action_b2bfee_student" sequence="30"
+              groups="group_b2bfee_student_entry"/>
     <menuitem id="menu_b2bfee_installments" name="Installments" parent="menu_b2bfee_root"
               action="action_b2bfee_installment" sequence="40"/>
     <menuitem id="menu_b2bfee_payments" name="Payments" parent="menu_b2bfee_root"

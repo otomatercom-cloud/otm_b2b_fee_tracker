@@ -32,7 +32,7 @@
                             type="object" class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_recompute_installments" string="Recompute Installments"
                             type="object" invisible="state != 'running'"
-                            confirm="Unpaid installments will be re-split using the current active students. Continue?"/>
+                            confirm="Unpaid installments will be re-split using the current number of students. Continue?"/>
                     <button name="action_close" string="Close Batch" type="object"
                             invisible="state != 'running'"/>
                     <button name="action_cancel" string="Cancel" type="object"
@@ -43,7 +43,8 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_students" type="object"
-                                class="oe_stat_button" icon="fa-users">
+                                class="oe_stat_button" icon="fa-users"
+                                groups="otm_b2b_fee_tracker.group_b2bfee_student_entry">
                             <field name="student_count" widget="statinfo" string="Students"/>
                         </button>
                         <button name="action_view_installments" type="object"
@@ -64,6 +65,7 @@
                             <field name="college_id" readonly="state != 'draft'"/>
                             <field name="program_id" readonly="state != 'draft'"/>
                             <field name="academic_year" readonly="state != 'draft'"/>
+                            <field name="student_total" readonly="state in ('closed', 'cancel')"/>
                             <field name="fee_per_student" readonly="state != 'draft'"/>
                         </group>
                         <group name="grp_amounts" string="Amounts">
@@ -85,7 +87,8 @@
                             </field>
                             <div class="text-muted">Terms must total 100% before the batch can be confirmed.</div>
                         </page>
-                        <page name="page_students" string="Students">
+                        <page name="page_students" string="Students"
+                              groups="otm_b2b_fee_tracker.group_b2bfee_student_entry">
                             <field name="student_ids">
                                 <list editable="bottom" decoration-muted="state == 'dropped'">
                                     <field name="name"/>

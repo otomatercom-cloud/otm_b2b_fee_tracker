@@ -9,6 +9,9 @@ YES_NO = [("yes", "Yes"), ("no", "No")]
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
+    group_b2bfee_students = fields.Boolean(
+        string="Student Entry",
+        implied_group="otm_b2b_fee_tracker.group_b2bfee_student_entry")
     b2bfee_due_window_days = fields.Integer(
         string="Due-soon Window (days)",
         config_parameter="otm_b2b_fee_tracker.due_window_days", default=7)
