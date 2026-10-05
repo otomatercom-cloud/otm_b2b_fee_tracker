@@ -37,6 +37,42 @@
                             <field name="b2bfee_email_receipt"/>
                         </setting>
                     </block>
+                    <block title="WhatsApp (Meta Cloud API)" name="b2bfee_whatsapp_block">
+                        <setting id="b2bfee_wa_enabled_setting" string="WhatsApp reminders"
+                                 help="Send the same due and overdue reminders to the college WhatsApp number using approved templates.">
+                            <field name="b2bfee_wa_enabled"/>
+                        </setting>
+                        <setting id="b2bfee_wa_receipt_setting" string="WhatsApp receipt"
+                                 help="Send a receipt message when a payment is posted.">
+                            <field name="b2bfee_wa_receipt"/>
+                        </setting>
+                        <setting id="b2bfee_wa_phone_id_setting" string="Phone Number ID"
+                                 help="From Meta Business: WhatsApp &gt; API Setup. This is the ID, not the phone number.">
+                            <field name="b2bfee_wa_phone_number_id"/>
+                        </setting>
+                        <setting id="b2bfee_wa_token_setting" string="Access token"
+                                 help="Permanent system-user token with whatsapp_business_messaging permission. Stored in system parameters, visible only to administrators.">
+                            <field name="b2bfee_wa_token" password="True"/>
+                        </setting>
+                        <setting id="b2bfee_wa_api_setting" string="API version and language"
+                                 help="Graph API version, template language code and the country code added to 10-digit numbers.">
+                            <field name="b2bfee_wa_api_version"/>
+                            <field name="b2bfee_wa_language"/>
+                            <field name="b2bfee_wa_country_code"/>
+                        </setting>
+                        <setting id="b2bfee_wa_templates_setting" string="Approved template names"
+                                 help="Exact names of your approved templates. Variable order: Upcoming {{1}} name, {{2}} term, {{3}} program, {{4}} due date, {{5}} balance. Overdue adds {{5}} days overdue and {{6}} balance. Receipt: {{1}} name, {{2}} amount, {{3}} receipt no, {{4}} program, {{5}} pending.">
+                            <field name="b2bfee_wa_tpl_upcoming"/>
+                            <field name="b2bfee_wa_tpl_overdue"/>
+                            <field name="b2bfee_wa_tpl_receipt"/>
+                        </setting>
+                        <setting id="b2bfee_wa_test_setting" string="Send a test"
+                                 help="Saves the settings and sends the 'Upcoming' template with sample values.">
+                            <field name="b2bfee_wa_test_number" placeholder="e.g. 98470 12345"/>
+                            <button name="action_b2bfee_wa_test" type="object"
+                                    string="Send test message" class="btn-link"/>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

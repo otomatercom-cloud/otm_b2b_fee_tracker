@@ -72,6 +72,8 @@
                                     <field name="kind"/>
                                     <field name="email_sent"/>
                                     <field name="email_to"/>
+                                    <field name="wa_sent"/>
+                                    <field name="wa_note"/>
                                     <field name="activity_created"/>
                                     <field name="escalated"/>
                                     <field name="note"/>

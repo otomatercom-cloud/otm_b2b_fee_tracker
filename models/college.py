@@ -13,6 +13,8 @@ class B2bFeeCollege(models.Model):
     contact_person = fields.Char(string="Contact Person")
     phone = fields.Char(string="Phone")
     email = fields.Char(string="Email")
+    whatsapp_number = fields.Char(
+        string="WhatsApp Number", help="Used for fee reminders. Falls back to Phone when empty.")
     city = fields.Char(string="City")
     owner_id = fields.Many2one(
         "res.users", string="Relationship Owner",

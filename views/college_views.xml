@@ -43,6 +43,7 @@
                         <group name="grp_contact" string="Contact">
                             <field name="contact_person"/>
                             <field name="phone"/>
+                            <field name="whatsapp_number"/>
                             <field name="email"/>
                             <field name="city"/>
                         </group>

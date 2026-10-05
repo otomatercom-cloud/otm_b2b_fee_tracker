@@ -4,6 +4,7 @@ import re
 
 from odoo import SUPERUSER_ID, _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.misc import format_date, formatLang
 
 _logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class B2bFeeInstallmentNotify(models.Model):
             "escalate_from": int(icp.get_param(PARAM + "escalate_from_days") or 7),
             "email_college": flag("email_college"),
             "email_receipt": flag("email_receipt"),
+            "wa_enabled": icp.get_param(PARAM + "wa_enabled", "no") == "yes",
         }
 
     # ------------------------------------------------------------------ helpers
@@ -82,6 +84,21 @@ class B2bFeeInstallmentNotify(models.Model):
         template.send_mail(self.id, force_send=False)
         return True, address, False
 
+    def _send_whatsapp(self, kind):
+        """Send the reminder as a WhatsApp template. Returns the sender's result dict."""
+        self.ensure_one()
+        wa = self.env["otm.b2bfee.whatsapp"]
+        college = self.college_id
+        name = college.contact_person or college.name
+        base = [name, self.term_name, self.program_id.name,
+                format_date(self.env, self.due_date)]
+        balance = formatLang(self.env, self.balance, currency_obj=self.currency_id)
+        if kind == "overdue":
+            params = base + [self.days_overdue, balance]
+        else:
+            params = base + [balance]
+        return wa.send_template(college.whatsapp_number or college.phone, kind, params)
+
     def _schedule_task(self, user, summary, note):
         self.ensure_one()
         if not user:
@@ -104,6 +121,7 @@ class B2bFeeInstallmentNotify(models.Model):
         email_sent, address, note = False, False, False
         if manual or conf["email_college"]:
             email_sent, address, note = self._queue_reminder_email(kind)
+        wa = self._send_whatsapp(kind) if conf["wa_enabled"] else {}
         task = False
         escalated = False
         if manual or key == "due_today" or kind == "overdue":
@@ -127,6 +145,8 @@ class B2bFeeInstallmentNotify(models.Model):
             "installment_id": self.id, "trigger_key": key,
             "kind": "manual" if manual else kind,
             "email_sent": email_sent, "email_to": address,
+            "wa_sent": wa.get("sent", False), "wa_to": wa.get("to", False),
+            "wa_message_id": wa.get("message_id", False), "wa_note": wa.get("note", False),
             "activity_created": task, "escalated": escalated, "note": note})
 
     # ------------------------------------------------------------------ entry points
@@ -151,20 +171,24 @@ class B2bFeeInstallmentNotify(models.Model):
 
     def action_send_reminder(self):
         conf = self._notif_conf()
-        emailed = skipped = 0
+        emailed = skipped = whatsapped = 0
         for rec in self:
             if rec.state == "paid":
                 raise UserError(_("This installment is already paid."))
             kind = "overdue" if rec.state == "overdue" else "upcoming"
             stamp = fields.Datetime.now().strftime("%Y%m%d%H%M%S")
             rec._process_reminder("manual_%s" % stamp, kind, conf, manual=True)
-            if rec.log_ids.sorted("id")[-1].email_sent:
+            last = rec.log_ids.sorted("id")[-1]
+            whatsapped += 1 if last.wa_sent else 0
+            if last.email_sent:
                 emailed += 1
-            else:
+            elif not last.wa_sent:
                 skipped += 1
         message = _("%(e)s reminder email(s) queued.", e=emailed)
+        if conf["wa_enabled"]:
+            message += " " + _("%(w)s WhatsApp message(s) sent.", w=whatsapped)
         if skipped:
-            message += " " + _("%(s)s skipped (college has no email).", s=skipped)
+            message += " " + _("%(s)s not delivered on any channel (check email / WhatsApp number).", s=skipped)
         return {
             "type": "ir.actions.client", "tag": "display_notification",
             "params": {"title": _("Reminder"), "message": message,

@@ -13,6 +13,9 @@
                 <field name="trigger_key" optional="hide"/>
                 <field name="email_sent"/>
                 <field name="email_to" optional="show"/>
+                <field name="wa_sent"/>
+                <field name="wa_to" optional="show"/>
+                <field name="wa_note" optional="show"/>
                 <field name="activity_created"/>
                 <field name="escalated"/>
                 <field name="note" optional="show"/>
@@ -31,6 +34,8 @@
                 <filter name="filter_overdue" string="Overdue" domain="[('kind', '=', 'overdue')]"/>
                 <filter name="filter_escalated" string="Escalated" domain="[('escalated', '=', True)]"/>
                 <filter name="filter_no_email" string="No Email Sent" domain="[('email_sent', '=', False)]"/>
+                <filter name="filter_wa_sent" string="WhatsApp Sent" domain="[('wa_sent', '=', True)]"/>
+                <filter name="filter_wa_failed" string="WhatsApp Not Delivered" domain="[('wa_sent', '=', False), ('wa_note', '!=', False)]"/>
                 <separator/>
                 <group>
                     <filter name="group_college" string="College" context="{'group_by': 'college_id'}"/>

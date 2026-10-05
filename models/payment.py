@@ -4,6 +4,7 @@ import logging
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare, float_is_zero
+from odoo.tools.misc import formatLang
 
 _logger = logging.getLogger(__name__)
 
@@ -118,8 +119,12 @@ class B2bFeePayment(models.Model):
                     raise UserError(_("Could not allocate the full amount to installments."))
                 self.env["otm.b2bfee.payment.alloc"].create(new_allocs)
             rec.state = "posted"
-            if self.env["otm.b2bfee.installment"]._notif_conf()["email_receipt"]:
+            conf = self.env["otm.b2bfee.installment"]._notif_conf()
+            if conf["email_receipt"]:
                 rec._send_receipt(silent=True)
+            wa_conf = self.env["otm.b2bfee.whatsapp"]._conf()
+            if wa_conf["enabled"] and wa_conf["receipt"]:
+                rec._send_whatsapp_receipt()
 
     def _send_receipt(self, silent=False):
         """Queue the receipt email (PDF attached by the template). Never blocks posting."""
@@ -141,14 +146,41 @@ class B2bFeePayment(models.Model):
             return False
         return True
 
+    def _send_whatsapp_receipt(self):
+        """WhatsApp the receipt summary (text template). Result is noted in the chatter."""
+        self.ensure_one()
+        college = self.college_id
+        wa = self.env["otm.b2bfee.whatsapp"]
+        result = wa.send_template(college.whatsapp_number or college.phone, "receipt", [
+            college.contact_person or college.name,
+            formatLang(self.env, self.amount, currency_obj=self.currency_id),
+            self.name, self.batch_id.program_id.name,
+            formatLang(self.env, self.batch_id.pending, currency_obj=self.currency_id)])
+        if result["sent"]:
+            self.message_post(body=_("Receipt sent on WhatsApp to %s.", result["to"]))
+        else:
+            self.message_post(body=_("WhatsApp receipt not sent: %s", result["note"]))
+        return result
+
     def action_send_receipt(self):
+        emailed = whatsapped = 0
+        wa_enabled = self.env["otm.b2bfee.whatsapp"]._conf()["enabled"]
         for rec in self:
             if rec.state != "posted":
                 raise UserError(_("Only posted payments have a receipt."))
-            rec._send_receipt()
+            if rec.college_id.email and rec._send_receipt(silent=True):
+                emailed += 1
+            if wa_enabled and rec._send_whatsapp_receipt()["sent"]:
+                whatsapped += 1
+        if not (emailed or whatsapped):
+            raise UserError(_(
+                "Nothing could be sent. Check the college email / WhatsApp number "
+                "and the WhatsApp settings."))
         return {
             "type": "ir.actions.client", "tag": "display_notification",
-            "params": {"title": _("Receipt"), "message": _("Receipt email queued."),
+            "params": {"title": _("Receipt"),
+                       "message": _("%(e)s email(s) queued, %(w)s WhatsApp message(s) sent.",
+                                    e=emailed, w=whatsapped),
                        "type": "success", "sticky": False},
         }
 
