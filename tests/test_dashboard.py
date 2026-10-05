@@ -5,6 +5,9 @@ from odoo.service.model import call_kw
 from odoo.tests import TransactionCase, tagged
 
 
+YEAR = "TEST-DASH"  # isolates these tests from demo data
+
+
 @tagged("post_install", "-at_install")
 class TestDashboard(TransactionCase):
 
@@ -26,7 +29,7 @@ class TestDashboard(TransactionCase):
     def _make_batch(cls, env, college, offsets):
         batch = env["otm.b2bfee.batch"].create({
             "college_id": college.id, "program_id": cls.program.id,
-            "academic_year": "2026-27", "fee_per_student": 10000.0,
+            "academic_year": YEAR, "fee_per_student": 10000.0,
             "student_ids": [(0, 0, {"name": "%s %d" % (college.name, i)}) for i in range(10)],
             "plan_line_ids": [
                 (0, 0, {"name": "Term %d" % (n + 1), "sequence": n,
@@ -40,7 +43,7 @@ class TestDashboard(TransactionCase):
     def _rpc(self, filters=None):
         # Same dispatch path as the browser's orm.call: args=[], kwargs={...}
         return call_kw(self.env(user=self.user)["otm.b2bfee.dashboard"],
-                       "get_dashboard_data", [], {"filters": filters or {}})
+                       "get_dashboard_data", [], {"filters": {"academic_year": YEAR, **(filters or {})}})
 
     def test_01_rpc_shape_and_totals(self):
         data = self._rpc()
@@ -77,8 +80,7 @@ class TestDashboard(TransactionCase):
 
     def test_04_filters_accept_string_ids(self):
         # <select>.value from the browser is always a string
-        data = self._rpc({"college_id": str(self.late.id), "academic_year": "2026-27",
-                          "program_id": str(self.program.id)})
+        data = self._rpc({"college_id": str(self.late.id), "program_id": str(self.program.id)})
         self.assertEqual(data["kpis"]["contract"], 100000.0)
         self.assertEqual([c["name"] for c in data["colleges"]], ["Late College"])
         self.assertEqual(self._rpc({"college_id": "garbage"})["kpis"]["contract"], 200000.0)

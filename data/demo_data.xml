@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dates are relative to the install day so the dashboard always looks alive.
+         No email addresses on purpose: demo payments and reminders must never send real mail. -->
+
+    <!-- Programs -->
+    <record id="demo_program_dipifr" model="otm.b2bfee.program">
+        <field name="name">DipIFR (ACCA)</field>
+        <field name="default_fee">15000</field>
+    </record>
+    <record id="demo_program_cma" model="otm.b2bfee.program">
+        <field name="name">CMA Foundation</field>
+        <field name="default_fee">12000</field>
+    </record>
+
+    <!-- Colleges -->
+    <record id="demo_college_thomas" model="otm.b2bfee.college">
+        <field name="name">St. Thomas College, Thrissur</field>
+        <field name="code">STC</field>
+        <field name="city">Thrissur</field>
+        <field name="contact_person">Dr. Mary Joseph</field>
+        <field name="phone">+91 487 200 1001</field>
+        <field name="mou_date" eval="(datetime.today() + timedelta(days=-200)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="demo_college_maharaja" model="otm.b2bfee.college">
+        <field name="name">Maharaja's College, Ernakulam</field>
+        <field name="code">MCE</field>
+        <field name="city">Kochi</field>
+        <field name="contact_person">Prof. Suresh Kumar</field>
+        <field name="phone">+91 484 200 2002</field>
+        <field name="mou_date" eval="(datetime.today() + timedelta(days=-150)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="demo_college_uc" model="otm.b2bfee.college">
+        <field name="name">Union Christian College, Aluva</field>
+        <field name="code">UCC</field>
+        <field name="city">Aluva</field>
+        <field name="contact_person">Fr. Thomas Varghese</field>
+        <field name="phone">+91 484 200 3003</field>
+        <field name="mou_date" eval="(datetime.today() + timedelta(days=-120)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="demo_college_govt" model="otm.b2bfee.college">
+        <field name="name">Government College, Kottayam</field>
+        <field name="code">GCK</field>
+        <field name="city">Kottayam</field>
+        <field name="contact_person">Mrs. Latha Pillai</field>
+        <field name="phone">+91 481 200 4004</field>
+        <field name="mou_date" eval="(datetime.today() + timedelta(days=-60)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="demo_college_sacred" model="otm.b2bfee.college">
+        <field name="name">Sacred Heart College, Thevara</field>
+        <field name="code">SHC</field>
+        <field name="city">Kochi</field>
+        <field name="contact_person">Br. Joseph Mathew</field>
+        <field name="phone">+91 484 200 5005</field>
+        <field name="mou_date" eval="(datetime.today() + timedelta(days=-300)).strftime('%Y-%m-%d')"/>
+    </record>
+
+    <!-- A: DipIFR, 20 students, 34/33/33 -> Term 1 paid on time (healthy) -->
+    <record id="demo_batch_thomas" model="otm.b2bfee.batch">
+        <field name="college_id" ref="demo_college_thomas"/>
+        <field name="program_id" ref="demo_program_dipifr"/>
+        <field name="academic_year">2026-27</field>
+        <field name="fee_per_student">15000</field>
+        <field name="student_ids" eval="[(0, 0, {'name': f + ' ' + s, 'phone': '98470' + str(10000 + n)})
+            for n, (f, s) in enumerate([(f, s) for f in ['Anjali', 'Arjun', 'Fathima', 'Rahul', 'Sneha', 'Vishnu', 'Aswathy', 'Midhun', 'Neha', 'Adil'] for s in ['Nair', 'Menon']])]"/>
+        <field name="plan_line_ids" eval="[
+            (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 34, 'due_date': (datetime.today() + timedelta(days=-60)).strftime('%Y-%m-%d')}),
+            (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 33, 'due_date': (datetime.today() + timedelta(days=30)).strftime('%Y-%m-%d')}),
+            (0, 0, {'name': 'Term 3', 'sequence': 30, 'percent': 33, 'due_date': (datetime.today() + timedelta(days=120)).strftime('%Y-%m-%d')})]"/>
+    </record>
+
+    <!-- B: DipIFR, 30 students, 40/30/30 -> Term 1 only part paid, Term 2 overdue (risk) -->
+    <record id="demo_batch_maharaja" model="otm.b2bfee.batch">
+        <field name="college_id" ref="demo_college_maharaja"/>
+        <field name="program_id" ref="demo_program_dipifr"/>
+        <field name="academic_year">2026-27</field>
+        <field name="fee_per_student">15000</field>
+        <field name="student_ids" eval="[(0, 0, {'name': f + ' ' + s, 'phone': '98950' + str(10000 + n)})
+            for n, (f, s) in enumerate([(f, s) for f in ['Akhil', 'Devika', 'Hari', 'Lakshmi', 'Nikhil', 'Parvathy', 'Sreejith', 'Tessa', 'Varun', 'Zainab'] for s in ['Pillai', 'Kurian', 'Joseph']])]"/>
+        <field name="plan_line_ids" eval="[
+            (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 40, 'due_date': (datetime.today() + timedelta(days=-45)).strftime('%Y-%m-%d')}),
+            (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 30, 'due_date': (datetime.today() + timedelta(days=-5)).strftime('%Y-%m-%d')}),
+            (0, 0, {'name': 'Term 3', 'sequence': 30, 'percent': 30, 'due_date': (datetime.today() + timedelta(days=60)).strftime('%Y-%m-%d')})]"/>
+    </record>
+
+    <!-- C: CMA Foundation, 25 students, 50/50 -> Term 1 paid 2 days late (watch) -->
+    <record id="demo_batch_uc" model="otm.b2bfee.batch">
+        <field name="college_id" ref="demo_college_uc"/>
+        <field name="program_id" ref="demo_program_cma"/>
+        <field name="academic_year">2026-27</field>
+        <field name="fee_per_student">12000</field>
+        <field name="student_ids" eval="[(0, 0, {'name': f + ' ' + s, 'phone': '97460' + str(10000 + n)})
+            for n, (f, s) in enumerate([(f, s) for f in ['Abhijith', 'Binu', 'Divya', 'Jibin', 'Reshma'] for s in ['Thomas', 'Varghese', 'George', 'Mathew', 'Philip']])]"/>
+        <field name="plan_line_ids" eval="[
+            (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 50, 'due_date': (datetime.today() + timedelta(days=-20)).strftime('%Y-%m-%d')}),
+            (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 50, 'due_date': (datetime.today() + timedelta(days=40)).strftime('%Y-%m-%d')})]"/>
+    </record>
+
+    <!-- D: DipIFR, 20 students, 33/33/34 -> first term due in 5 days (upcoming) -->
+    <record id="demo_batch_govt" model="otm.b2bfee.batch">
+        <field name="college_id" ref="demo_college_govt"/>
+        <field name="program_id" ref="demo_program_dipifr"/>
+        <field name="academic_year">2026-27</field>
+        <field name="fee_per_student">15000</field>
+        <field name="student_ids" eval="[(0, 0, {'name': f + ' ' + s, 'phone': '94470' + str(10000 + n)})
+            for n, (f, s) in enumerate([(f, s) for f in ['Amal', 'Bhavya', 'Cherian', 'Diya', 'Eldho', 'Gayathri', 'Irfan', 'Keerthana', 'Liya', 'Manu'] for s in ['Das', 'Raj']])]"/>
+        <field name="plan_line_ids" eval="[
+            (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 33, 'due_date': (datetime.today() + timedelta(days=5)).strftime('%Y-%m-%d')}),
+            (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 33, 'due_date': (datetime.today() + timedelta(days=65)).strftime('%Y-%m-%d')}),
+            (0, 0, {'name': 'Term 3', 'sequence': 30, 'percent': 34, 'due_date': (datetime.today() + timedelta(days=125)).strftime('%Y-%m-%d')})]"/>
+    </record>
+
+    <!-- E: CMA Foundation, 10 students, 50/50 -> fully paid on time, closed -->
+    <record id="demo_batch_sacred" model="otm.b2bfee.batch">
+        <field name="college_id" ref="demo_college_sacred"/>
+        <field name="program_id" ref="demo_program_cma"/>
+        <field name="academic_year">2026-27</field>
+        <field name="fee_per_student">12000</field>
+        <field name="student_ids" eval="[(0, 0, {'name': f + ' Mathew', 'phone': '99610' + str(10000 + n)})
+            for n, f in enumerate(['Alex', 'Betsy', 'Clint', 'Deepa', 'Ebin', 'Feba', 'Giji', 'Hanna', 'Ivan', 'Jessy'])]"/>
+        <field name="plan_line_ids" eval="[
+            (0, 0, {'name': 'Term 1', 'sequence': 10, 'percent': 50, 'due_date': (datetime.today() + timedelta(days=-90)).strftime('%Y-%m-%d')}),
+            (0, 0, {'name': 'Term 2', 'sequence': 20, 'percent': 50, 'due_date': (datetime.today() + timedelta(days=-30)).strftime('%Y-%m-%d')})]"/>
+    </record>
+
+    <!-- Confirm: generates the installments -->
+    <function model="otm.b2bfee.batch" name="action_confirm"
+              eval="[[ref('demo_batch_thomas'), ref('demo_batch_maharaja'), ref('demo_batch_uc'),
+                      ref('demo_batch_govt'), ref('demo_batch_sacred')]]"/>
+
+    <!-- Payments -->
+    <record id="demo_payment_thomas_1" model="otm.b2bfee.payment">
+        <field name="college_id" ref="demo_college_thomas"/>
+        <field name="batch_id" ref="demo_batch_thomas"/>
+        <field name="date" eval="(datetime.today() + timedelta(days=-62)).strftime('%Y-%m-%d')"/>
+        <field name="amount">102000</field>
+        <field name="payment_mode">bank</field>
+        <field name="reference">NEFT-STC-0001</field>
+    </record>
+    <record id="demo_payment_maharaja_1" model="otm.b2bfee.payment">
+        <field name="college_id" ref="demo_college_maharaja"/>
+        <field name="batch_id" ref="demo_batch_maharaja"/>
+        <field name="date" eval="(datetime.today() + timedelta(days=-30)).strftime('%Y-%m-%d')"/>
+        <field name="amount">100000</field>
+        <field name="payment_mode">cheque</field>
+        <field name="reference">CHQ-884213</field>
+    </record>
+    <record id="demo_payment_uc_1" model="otm.b2bfee.payment">
+        <field name="college_id" ref="demo_college_uc"/>
+        <field name="batch_id" ref="demo_batch_uc"/>
+        <field name="date" eval="(datetime.today() + timedelta(days=-18)).strftime('%Y-%m-%d')"/>
+        <field name="amount">150000</field>
+        <field name="payment_mode">upi</field>
+        <field name="reference">UPI-UCC-7731</field>
+    </record>
+    <record id="demo_payment_sacred_1" model="otm.b2bfee.payment">
+        <field name="college_id" ref="demo_college_sacred"/>
+        <field name="batch_id" ref="demo_batch_sacred"/>
+        <field name="date" eval="(datetime.today() + timedelta(days=-92)).strftime('%Y-%m-%d')"/>
+        <field name="amount">60000</field>
+        <field name="payment_mode">bank</field>
+        <field name="reference">NEFT-SHC-0101</field>
+    </record>
+    <record id="demo_payment_sacred_2" model="otm.b2bfee.payment">
+        <field name="college_id" ref="demo_college_sacred"/>
+        <field name="batch_id" ref="demo_batch_sacred"/>
+        <field name="date" eval="(datetime.today() + timedelta(days=-32)).strftime('%Y-%m-%d')"/>
+        <field name="amount">60000</field>
+        <field name="payment_mode">bank</field>
+        <field name="reference">NEFT-SHC-0102</field>
+    </record>
+
+    <function model="otm.b2bfee.payment" name="action_post"
+              eval="[[ref('demo_payment_thomas_1'), ref('demo_payment_maharaja_1'), ref('demo_payment_uc_1'),
+                      ref('demo_payment_sacred_1'), ref('demo_payment_sacred_2')]]"/>
+
+    <!-- Fully paid batch is closed -->
+    <function model="otm.b2bfee.batch" name="action_close" eval="[[ref('demo_batch_sacred')]]"/>
+
+    <!-- Statuses are date based: refresh them right away -->
+    <function model="otm.b2bfee.installment" name="_cron_refresh_status"/>
+</odoo>
