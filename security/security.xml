@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="privilege_b2bfee" model="res.groups.privilege">
+        <field name="name">B2B Fee Tracker</field>
+        <field name="category_id" ref="base.module_category_customizations"/>
+    </record>
+
+    <record id="group_b2bfee_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="privilege_id" ref="privilege_b2bfee"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_b2bfee_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="privilege_id" ref="privilege_b2bfee"/>
+        <field name="implied_ids" eval="[(4, ref('group_b2bfee_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <record id="rule_b2bfee_college_company" model="ir.rule">
+        <field name="name">B2B Fee College: multi-company</field>
+        <field name="model_id" ref="model_otm_b2bfee_college"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2bfee_batch_company" model="ir.rule">
+        <field name="name">B2B Fee Batch: multi-company</field>
+        <field name="model_id" ref="model_otm_b2bfee_batch"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2bfee_student_company" model="ir.rule">
+        <field name="name">B2B Fee Student: multi-company</field>
+        <field name="model_id" ref="model_otm_b2bfee_student"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2bfee_installment_company" model="ir.rule">
+        <field name="name">B2B Fee Installment: multi-company</field>
+        <field name="model_id" ref="model_otm_b2bfee_installment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2bfee_payment_company" model="ir.rule">
+        <field name="name">B2B Fee Payment: multi-company</field>
+        <field name="model_id" ref="model_otm_b2bfee_payment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

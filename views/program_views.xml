@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2bfee_program_list" model="ir.ui.view">
+        <field name="name">otm.b2bfee.program.list</field>
+        <field name="model">otm.b2bfee.program</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="default_fee"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_b2bfee_program" model="ir.actions.act_window">
+        <field name="name">Programs</field>
+        <field name="res_model">otm.b2bfee.program</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

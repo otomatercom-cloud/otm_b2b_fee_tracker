@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_b2bfee_root" name="B2B Fees" sequence="45"
+              groups="group_b2bfee_user"/>
+
+    <menuitem id="menu_b2bfee_colleges" name="Colleges" parent="menu_b2bfee_root"
+              action="action_b2bfee_college" sequence="10"/>
+    <menuitem id="menu_b2bfee_batches" name="Batches" parent="menu_b2bfee_root"
+              action="action_b2bfee_batch" sequence="20"/>
+    <menuitem id="menu_b2bfee_students" name="Students" parent="menu_b2bfee_root"
+              action="action_b2bfee_student" sequence="30"/>
+    <menuitem id="menu_b2bfee_installments" name="Installments" parent="menu_b2bfee_root"
+              action="action_b2bfee_installment" sequence="40"/>
+    <menuitem id="menu_b2bfee_payments" name="Payments" parent="menu_b2bfee_root"
+              action="action_b2bfee_payment" sequence="50"/>
+
+    <menuitem id="menu_b2bfee_config" name="Configuration" parent="menu_b2bfee_root"
+              sequence="90" groups="group_b2bfee_manager"/>
+    <menuitem id="menu_b2bfee_programs" name="Programs" parent="menu_b2bfee_config"
+              action="action_b2bfee_program" sequence="10"/>
+</odoo>

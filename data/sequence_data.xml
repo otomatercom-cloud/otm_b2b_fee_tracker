@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_b2bfee_batch" model="ir.sequence">
+        <field name="name">B2B Fee Batch</field>
+        <field name="code">otm.b2bfee.batch</field>
+        <field name="prefix">BF/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_b2bfee_payment" model="ir.sequence">
+        <field name="name">B2B Fee Payment</field>
+        <field name="code">otm.b2bfee.payment</field>
+        <field name="prefix">RCT/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>

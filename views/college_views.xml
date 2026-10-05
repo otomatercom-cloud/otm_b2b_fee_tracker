@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2bfee_college_list" model="ir.ui.view">
+        <field name="name">otm.b2bfee.college.list</field>
+        <field name="model">otm.b2bfee.college</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="code" optional="hide"/>
+                <field name="city" optional="show"/>
+                <field name="contact_person" optional="show"/>
+                <field name="phone" optional="show"/>
+                <field name="owner_id" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="contract_value" sum="Total"/>
+                <field name="collected" sum="Total"/>
+                <field name="pending" sum="Total" decoration-danger="pending &gt; 0"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2bfee_college_form" model="ir.ui.view">
+        <field name="name">otm.b2bfee.college.form</field>
+        <field name="model">otm.b2bfee.college</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_batches" type="object"
+                                class="oe_stat_button" icon="fa-graduation-cap">
+                            <field name="batch_count" widget="statinfo" string="Batches"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="College name"/></h1>
+                    </div>
+                    <group name="grp_main">
+                        <group name="grp_contact" string="Contact">
+                            <field name="contact_person"/>
+                            <field name="phone"/>
+                            <field name="email"/>
+                            <field name="city"/>
+                        </group>
+                        <group name="grp_account" string="Account">
+                            <field name="code"/>
+                            <field name="owner_id"/>
+                            <field name="mou_date"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group name="grp_finance" string="Fee Summary">
+                        <field name="contract_value"/>
+                        <field name="collected"/>
+                        <field name="pending"/>
+                    </group>
+                    <notebook>
+                        <page name="page_batches" string="Batches">
+                            <field name="batch_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="program_id"/>
+                                    <field name="academic_year"/>
+                                    <field name="student_count"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="total_amount"/>
+                                    <field name="collected"/>
+                                    <field name="pending"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="page_notes" string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_b2bfee_college_search" model="ir.ui.view">
+        <field name="name">otm.b2bfee.college.search</field>
+        <field name="model">otm.b2bfee.college</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="city"/>
+                <field name="contact_person"/>
+                <field name="owner_id"/>
+                <filter name="filter_mine" string="My Colleges"
+                        domain="[('owner_id', '=', uid)]"/>
+                <filter name="filter_archived" string="Archived"
+                        domain="[('active', '=', False)]"/>
+                <separator/>
+                <group>
+                    <filter name="group_owner" string="Owner" context="{'group_by': 'owner_id'}"/>
+                    <filter name="group_city" string="City" context="{'group_by': 'city'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_b2bfee_college" model="ir.actions.act_window">
+        <field name="name">Colleges</field>
+        <field name="res_model">otm.b2bfee.college</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

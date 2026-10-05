@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2bfee_batch_list" model="ir.ui.view">
+        <field name="name">otm.b2bfee.batch.list</field>
+        <field name="model">otm.b2bfee.batch</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancel'" decoration-success="state == 'closed'">
+                <field name="name"/>
+                <field name="college_id"/>
+                <field name="program_id"/>
+                <field name="academic_year"/>
+                <field name="student_count"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="collected" sum="Total"/>
+                <field name="pending" sum="Total"/>
+                <field name="collection_pct" widget="progressbar"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'" decoration-warning="state == 'running'"
+                       decoration-success="state == 'closed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2bfee_batch_form" model="ir.ui.view">
+        <field name="name">otm.b2bfee.batch.form</field>
+        <field name="model">otm.b2bfee.batch</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm &amp; Generate Installments"
+                            type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_recompute_installments" string="Recompute Installments"
+                            type="object" invisible="state != 'running'"
+                            confirm="Unpaid installments will be re-split using the current active students. Continue?"/>
+                    <button name="action_close" string="Close Batch" type="object"
+                            invisible="state != 'running'"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state not in ('draft', 'running')"
+                            confirm="Cancel this batch?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_students" type="object"
+                                class="oe_stat_button" icon="fa-users">
+                            <field name="student_count" widget="statinfo" string="Students"/>
+                        </button>
+                        <button name="action_view_installments" type="object"
+                                class="oe_stat_button" icon="fa-calendar">
+                            <span class="o_stat_text">Installments</span>
+                        </button>
+                        <button name="action_view_payments" type="object"
+                                class="oe_stat_button" icon="fa-money">
+                            <field name="payment_count" widget="statinfo" string="Payments"/>
+                        </button>
+                    </div>
+                    <field name="currency_id" invisible="1"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group name="grp_main">
+                        <group name="grp_contract" string="Contract">
+                            <field name="college_id" readonly="state != 'draft'"/>
+                            <field name="program_id" readonly="state != 'draft'"/>
+                            <field name="academic_year" readonly="state != 'draft'"/>
+                            <field name="fee_per_student" readonly="state != 'draft'"/>
+                        </group>
+                        <group name="grp_amounts" string="Amounts">
+                            <field name="total_amount"/>
+                            <field name="collected"/>
+                            <field name="pending"/>
+                            <field name="collection_pct" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="page_terms" string="Payment Terms">
+                            <field name="plan_line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="due_date"/>
+                                    <field name="percent" sum="Total %"/>
+                                </list>
+                            </field>
+                            <div class="text-muted">Terms must total 100% before the batch can be confirmed.</div>
+                        </page>
+                        <page name="page_students" string="Students">
+                            <field name="student_ids">
+                                <list editable="bottom" decoration-muted="state == 'dropped'">
+                                    <field name="name"/>
+                                    <field name="phone"/>
+                                    <field name="email" optional="show"/>
+                                    <field name="registration_date" optional="show"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="discount_amount"/>
+                                    <field name="fee" sum="Total"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="page_installments" string="Installments">
+                            <field name="installment_ids" readonly="1">
+                                <list decoration-danger="state == 'overdue'"
+                                      decoration-success="state == 'paid'">
+                                    <field name="term_name"/>
+                                    <field name="due_date"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="amount" sum="Total"/>
+                                    <field name="paid_amount" sum="Total"/>
+                                    <field name="balance" sum="Total"/>
+                                    <field name="days_overdue"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="page_notes" string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_b2bfee_batch_search" model="ir.ui.view">
+        <field name="name">otm.b2bfee.batch.search</field>
+        <field name="model">otm.b2bfee.batch</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="college_id"/>
+                <field name="program_id"/>
+                <field name="academic_year"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_running" string="Running" domain="[('state', '=', 'running')]"/>
+                <filter name="filter_closed" string="Closed" domain="[('state', '=', 'closed')]"/>
+                <filter name="filter_pending" string="With Pending Amount"
+                        domain="[('pending', '&gt;', 0), ('state', '=', 'running')]"/>
+                <separator/>
+                <group>
+                    <filter name="group_college" string="College" context="{'group_by': 'college_id'}"/>
+                    <filter name="group_program" string="Program" context="{'group_by': 'program_id'}"/>
+                    <filter name="group_year" string="Academic Year" context="{'group_by': 'academic_year'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_b2bfee_batch" model="ir.actions.act_window">
+        <field name="name">Batches</field>
+        <field name="res_model">otm.b2bfee.batch</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

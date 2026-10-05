@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2bfee_payment_list" model="ir.ui.view">
+        <field name="name">otm.b2bfee.payment.list</field>
+        <field name="model">otm.b2bfee.payment</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancel'" decoration-info="state == 'draft'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="college_id"/>
+                <field name="batch_id"/>
+                <field name="payment_mode"/>
+                <field name="reference" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="amount" sum="Total"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'" decoration-success="state == 'posted'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2bfee_payment_form" model="ir.ui.view">
+        <field name="name">otm.b2bfee.payment.form</field>
+        <field name="model">otm.b2bfee.payment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_post" string="Post Payment" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state == 'cancel'" confirm="Cancel this payment?"/>
+                    <button name="action_draft" string="Reset to Draft" type="object"
+                            invisible="state != 'cancel'"
+                            groups="otm_b2b_fee_tracker.group_b2bfee_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                </header>
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group name="grp_main">
+                        <group name="grp_who">
+                            <field name="college_id" readonly="state != 'draft'"/>
+                            <field name="batch_id" readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                        </group>
+                        <group name="grp_how">
+                            <field name="amount" readonly="state != 'draft'"/>
+                            <field name="payment_mode" readonly="state != 'draft'"/>
+                            <field name="reference" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="page_allocs" string="Allocation">
+                            <div class="text-muted" invisible="state != 'draft'">
+                                Leave empty to allocate automatically to the oldest due installments,
+                                or add lines to choose the terms yourself (any remainder is auto-allocated).
+                            </div>
+                            <field name="alloc_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="installment_id"
+                                           domain="[('batch_id', '=', parent.batch_id), ('balance', '&gt;', 0)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="page_proof" string="Proof">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page name="page_notes" string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_b2bfee_payment_search" model="ir.ui.view">
+        <field name="name">otm.b2bfee.payment.search</field>
+        <field name="model">otm.b2bfee.payment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="college_id"/>
+                <field name="batch_id"/>
+                <field name="reference"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_posted" string="Posted" domain="[('state', '=', 'posted')]"/>
+                <separator/>
+                <group>
+                    <filter name="group_college" string="College" context="{'group_by': 'college_id'}"/>
+                    <filter name="group_batch" string="Batch" context="{'group_by': 'batch_id'}"/>
+                    <filter name="group_mode" string="Mode" context="{'group_by': 'payment_mode'}"/>
+                    <filter name="group_month" string="Month" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_b2bfee_payment" model="ir.actions.act_window">
+        <field name="name">Payments</field>
+        <field name="res_model">otm.b2bfee.payment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
