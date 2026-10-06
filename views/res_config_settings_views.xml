@@ -60,22 +60,40 @@
                                  help="Permanent system-user token with whatsapp_business_messaging permission. Stored in system parameters, visible only to administrators.">
                             <field name="b2bfee_wa_token" password="True"/>
                         </setting>
-                        <setting id="b2bfee_wa_api_setting" string="API version and language"
-                                 help="Graph API version, template language code and the country code added to 10-digit numbers.">
+                        <setting id="b2bfee_wa_version_setting" string="Graph API version"
+                                 help="Keep v21.0 unless Meta asks you to change it.">
                             <field name="b2bfee_wa_api_version"/>
+                        </setting>
+                        <setting id="b2bfee_wa_language_setting" string="Template language code"
+                                 help="Must match the language of your templates in WhatsApp Manager: en for English, en_US for English (US), en_GB for English (UK).">
                             <field name="b2bfee_wa_language"/>
+                        </setting>
+                        <setting id="b2bfee_wa_country_setting" string="Default country code"
+                                 help="Added to 10-digit numbers, e.g. 91 for India.">
                             <field name="b2bfee_wa_country_code"/>
                         </setting>
-                        <setting id="b2bfee_wa_templates_setting" string="Approved template names"
-                                 help="Exact names of your approved templates. Variable order: Upcoming {{1}} name, {{2}} term, {{3}} program, {{4}} due date, {{5}} balance. Overdue adds {{5}} days overdue and {{6}} balance. Receipt: {{1}} name, {{2}} amount, {{3}} receipt no, {{4}} program, {{5}} pending.">
+                        <setting id="b2bfee_wa_tpl_upcoming_setting" string="College reminder template"
+                                 help="Template name for the due-soon reminder to colleges. Variables: 1 name, 2 term, 3 program, 4 due date, 5 balance.">
                             <field name="b2bfee_wa_tpl_upcoming"/>
+                        </setting>
+                        <setting id="b2bfee_wa_tpl_overdue_setting" string="College overdue template"
+                                 help="Template name for the overdue notice to colleges. Variables: 1 name, 2 term, 3 program, 4 due date, 5 days overdue, 6 balance.">
                             <field name="b2bfee_wa_tpl_overdue"/>
+                        </setting>
+                        <setting id="b2bfee_wa_tpl_receipt_setting" string="College receipt template"
+                                 help="Template name for the payment receipt to colleges. Variables: 1 name, 2 amount, 3 receipt no, 4 program, 5 balance pending.">
                             <field name="b2bfee_wa_tpl_receipt"/>
                         </setting>
-                        <setting id="b2bfee_wa_staff_templates_setting" string="Accounts team and directors templates"
-                                 help="Internal messages. Summary: {{1}} date, {{2}} total colleges, {{3}} colleges with pending, {{4}} collected, {{5}} pending, {{6}} overdue, {{7}} due in 7 days, {{8}} top 5 colleges by pending. Payment alert: {{1}} college, {{2}} amount, {{3}} program, {{4}} receipt, {{5}} batch pending. Escalation: {{1}} college, {{2}} term, {{3}} program, {{4}} days overdue, {{5}} balance.">
+                        <setting id="b2bfee_wa_tpl_summary_setting" string="Team summary template"
+                                 help="Template name for the accounts/director summary. Needs 8 variables: 1 date, 2 total colleges, 3 colleges with pending, 4 collected, 5 pending, 6 overdue, 7 due in 7 days, 8 top colleges by pending.">
                             <field name="b2bfee_wa_tpl_summary"/>
+                        </setting>
+                        <setting id="b2bfee_wa_tpl_staff_payment_setting" string="Team payment alert template"
+                                 help="Template name for payment-received alerts. Needs 5 variables: 1 college, 2 amount, 3 program, 4 receipt, 5 batch pending.">
                             <field name="b2bfee_wa_tpl_staff_payment"/>
+                        </setting>
+                        <setting id="b2bfee_wa_tpl_staff_escalation_setting" string="Team escalation template"
+                                 help="Template name for escalation alerts. Needs 5 variables: 1 college, 2 term, 3 program, 4 days overdue, 5 balance.">
                             <field name="b2bfee_wa_tpl_staff_escalation"/>
                         </setting>
                         <setting id="b2bfee_wa_test_setting" string="Send a test"
