@@ -159,6 +159,43 @@ class B2bFeeDashboard(models.AbstractModel):
             lambda i: (i.due_date, i.id))[:12]
         top_overdue = overdue.sorted(lambda i: (i.due_date, i.id))[:10]
 
+        # ---- payment tracker: one row per batch, one cell per term
+        def cell(inst):
+            posted = inst.alloc_ids.filtered(lambda a: a.payment_state == "posted")
+            received_on = max(posted.mapped("payment_id.date")) if posted else False
+            days = (inst.due_date - today).days
+            if inst.balance <= 0:
+                status = "received"
+            elif inst.paid_amount > 0:
+                status = "partial"
+            elif days < 0:
+                status = "not_received"
+            else:
+                status = "awaiting"
+            return {
+                "id": inst.id, "term": inst.term_name, "status": status,
+                "amount": inst.amount, "paid": inst.paid_amount, "balance": inst.balance,
+                "due_date": fields.Date.to_string(inst.due_date),
+                "received_on": fields.Date.to_string(received_on) if received_on else False,
+                # negative = paid early, positive = late (or days overdue when not received)
+                "late_days": ((received_on - inst.due_date).days if received_on and status == "received"
+                              else max(-days, 0)),
+                "days_to_due": days,
+            }
+
+        tracker = []
+        for batch in batches.sorted(lambda b: (b.college_id.name or "", b.program_id.name or "")):
+            insts = installments.filtered(lambda i, b=batch: i.batch_id == b).sorted(
+                lambda i: (i.sequence, i.due_date, i.id))
+            tracker.append({
+                "batch_id": batch.id, "college": batch.college_id.name,
+                "college_id": batch.college_id.id, "program": batch.program_id.name,
+                "year": batch.academic_year, "students": batch.student_count,
+                "contract": total(insts, "amount"), "collected": total(insts, "paid_amount"),
+                "pending": total(insts, "balance"),
+                "cells": [cell(i) for i in insts],
+            })
+
         all_batches = self.env["otm.b2bfee.batch"].search([("state", "in", ("running", "closed"))])
         currency = self.env.company.currency_id
         return {
@@ -167,7 +204,7 @@ class B2bFeeDashboard(models.AbstractModel):
                          "decimals": currency.decimal_places},
             "kpis": kpis, "ageing": ageing, "colleges": colleges,
             "by_term": by_term, "by_program": by_program, "trend": trend,
-            "forecast": forecast,
+            "forecast": forecast, "tracker": tracker,
             "upcoming": [line(i) for i in upcoming],
             "overdue_list": [line(i) for i in top_overdue],
             "options": {

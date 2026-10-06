@@ -22,6 +22,7 @@ export class B2bFeeDashboard extends Component {
             filters: { academic_year: "", college_id: "", program_id: "" },
             trendTable: false,
             sortKey: "pending",
+            trackerFilter: "all",
             tip: { show: false, x: 0, y: 0, title: "", rows: [] },
         });
         onWillStart(() => this.load());
@@ -41,6 +42,76 @@ export class B2bFeeDashboard extends Component {
     onFilterChange(key, ev) {
         this.state.filters[key] = ev.target.value;
         this.load();
+    }
+
+    // ------------------------------------------------------------ payment tracker
+    get trackerRows() {
+        const rows = this.state.data.tracker || [];
+        const f = this.state.trackerFilter;
+        if (f === "pending") {
+            return rows.filter((r) => r.cells.some((c) => c.status !== "received"));
+        }
+        if (f === "received") {
+            return rows.filter((r) => r.cells.length && r.cells.every((c) => c.status === "received"));
+        }
+        return rows;
+    }
+
+    get trackerColumns() {
+        const max = Math.max(0, ...(this.state.data.tracker || []).map((r) => r.cells.length));
+        return Array.from({ length: max }, (_, idx) => idx);
+    }
+
+    get trackerCounts() {
+        const counts = { received: 0, partial: 0, not_received: 0, awaiting: 0 };
+        for (const row of this.state.data.tracker || []) {
+            for (const c of row.cells) {
+                counts[c.status] += 1;
+            }
+        }
+        return counts;
+    }
+
+    setTrackerFilter(value) {
+        this.state.trackerFilter = value;
+    }
+
+    cellLabel(c) {
+        if (c.status === "received") {
+            return "Received";
+        }
+        if (c.status === "partial") {
+            return "Part received";
+        }
+        if (c.status === "not_received") {
+            return "Not received";
+        }
+        return "Awaiting";
+    }
+
+    cellNote(c) {
+        if (c.status === "received") {
+            const late = c.late_days;
+            const when = late > 0 ? `${late} d late` : late < 0 ? `${-late} d early` : "on time";
+            return `${c.received_on || ""} · ${when}`;
+        }
+        if (c.status === "partial") {
+            const base = `${this.fmt(c.balance)} left`;
+            return c.days_to_due < 0 ? `${base} · ${-c.days_to_due} d overdue` : `${base} · due ${c.due_date}`;
+        }
+        if (c.status === "not_received") {
+            return `${-c.days_to_due} d overdue · due ${c.due_date}`;
+        }
+        return c.days_to_due === 0 ? "Due today" : `Due in ${c.days_to_due} d · ${c.due_date}`;
+    }
+
+    cellIcon(c) {
+        return {
+            received: "fa-check-circle",
+            partial: "fa-adjust",
+            not_received: "fa-times-circle",
+            awaiting: "fa-clock-o",
+        }[c.status];
     }
 
     // ------------------------------------------------------------ formatting

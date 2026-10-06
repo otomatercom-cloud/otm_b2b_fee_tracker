@@ -205,6 +205,66 @@
                         </div>
                     </section>
 
+                    <!-- Payment tracker -->
+                    <section class="b2b-card">
+                        <div class="b2b-card-head">
+                            <h2>Payment tracker</h2>
+                            <div class="b2b-chips">
+                                <button t-attf-class="b2b-chip #{state.trackerFilter === 'all' ? 'is-on' : ''}"
+                                        t-on-click="() => this.setTrackerFilter('all')">All</button>
+                                <button t-attf-class="b2b-chip #{state.trackerFilter === 'pending' ? 'is-on' : ''}"
+                                        t-on-click="() => this.setTrackerFilter('pending')">Not fully received</button>
+                                <button t-attf-class="b2b-chip #{state.trackerFilter === 'received' ? 'is-on' : ''}"
+                                        t-on-click="() => this.setTrackerFilter('received')">Fully received</button>
+                            </div>
+                        </div>
+                        <div class="b2b-legend">
+                            <span><i class="fa fa-check-circle b2b-st-received"/> Received <t t-esc="trackerCounts.received"/></span>
+                            <span><i class="fa fa-adjust b2b-st-partial"/> Part received <t t-esc="trackerCounts.partial"/></span>
+                            <span><i class="fa fa-times-circle b2b-st-not_received"/> Not received <t t-esc="trackerCounts.not_received"/></span>
+                            <span><i class="fa fa-clock-o b2b-st-awaiting"/> Awaiting due date <t t-esc="trackerCounts.awaiting"/></span>
+                        </div>
+                        <div class="b2b-scroll" t-if="trackerRows.length">
+                            <table class="b2b-table b2b-tracker">
+                                <thead>
+                                    <tr>
+                                        <th>College · Program</th>
+                                        <th t-foreach="trackerColumns" t-as="col" t-key="col">Term <t t-esc="col + 1"/></th>
+                                        <th class="num">Received</th>
+                                        <th class="num">Not received</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="trackerRows" t-as="row" t-key="row.batch_id">
+                                        <td>
+                                            <button class="b2b-link" t-on-click="() => this.openCollegeDues({id: row.college_id, name: row.college})" t-esc="row.college"/>
+                                            <div class="b2b-foot"><t t-esc="row.program"/> · <t t-esc="row.year"/> · <t t-esc="row.students"/> students</div>
+                                        </td>
+                                        <td t-foreach="trackerColumns" t-as="col" t-key="col">
+                                            <t t-set="c" t-value="row.cells[col]"/>
+                                            <div t-if="c" t-attf-class="b2b-cell b2b-cell-#{c.status}">
+                                                <div class="b2b-cell-top">
+                                                    <i t-attf-class="fa #{cellIcon(c)}"/>
+                                                    <strong t-esc="cellLabel(c)"/>
+                                                    <span class="b2b-cell-name" t-esc="c.term"/>
+                                                </div>
+                                                <div class="b2b-cell-amt">
+                                                    <t t-esc="fmt(c.status === 'received' ? c.paid : c.status === 'partial' ? c.paid : c.balance)"/>
+                                                    <span t-if="c.status === 'partial'" class="b2b-foot"> of <t t-esc="fmt(c.amount)"/></span>
+                                                </div>
+                                                <div class="b2b-cell-note" t-esc="cellNote(c)"/>
+                                            </div>
+                                            <span t-else="" class="b2b-foot">–</span>
+                                        </td>
+                                        <td class="num" t-esc="fmt(row.collected)"/>
+                                        <td class="num" t-esc="fmt(row.pending)"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div t-else="" class="b2b-empty">Nothing matches this filter.</div>
+                    </section>
+
                     <!-- College performance -->
                     <section class="b2b-card">
                         <div class="b2b-card-head">

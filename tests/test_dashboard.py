@@ -91,3 +91,19 @@ class TestDashboard(TransactionCase):
         # term 2 of both colleges falls inside the 30-day window, soonest first
         self.assertEqual([r["college"] for r in data["upcoming"]], ["Late College", "Good College"])
         self.assertEqual([r["days"] for r in data["upcoming"]], [20, 30])
+
+    def test_06_payment_tracker_matrix(self):
+        pay = self.env["otm.b2bfee.payment"].with_user(self.user).create({
+            "college_id": self.good.id, "batch_id": self.good_batch.id, "amount": 34000.0})
+        pay.action_post()
+        part = self.env["otm.b2bfee.payment"].with_user(self.user).create({
+            "college_id": self.late.id, "batch_id": self.late_batch.id, "amount": 10000.0})
+        part.action_post()
+        tracker = {r["college"]: r for r in self._rpc()["tracker"]}
+        good, late = tracker["Good College"]["cells"], tracker["Late College"]["cells"]
+        self.assertEqual([c["status"] for c in good], ["received", "awaiting", "awaiting"])
+        self.assertEqual(good[0]["received_on"], str(date.today()))
+        self.assertEqual(good[0]["late_days"], 40)  # due 40 days ago, paid today
+        self.assertEqual([c["status"] for c in late], ["partial", "awaiting", "awaiting"])
+        self.assertEqual(late[0]["balance"], 24000.0)
+        self.assertEqual(tracker["Good College"]["collected"], 34000.0)

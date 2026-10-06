@@ -152,3 +152,25 @@
 .b2b-tip-title { font-weight: 600; margin-bottom: 4px; }
 .b2b-tip-row { display: flex; align-items: center; gap: 6px; }
 .b2b-tip-row strong { margin-left: auto; padding-left: 14px; font-variant-numeric: tabular-nums; }
+
+/* Payment tracker */
+.b2b-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.b2b-chip { border: 1px solid var(--b2b-line); background: transparent; color: var(--b2b-ink); border-radius: 14px; padding: 2px 12px; font-size: 12px; cursor: pointer; }
+.b2b-chip.is-on { background: var(--b2b-blue); border-color: var(--b2b-blue); color: #fff; }
+.b2b-st-received { color: var(--b2b-good); }
+.b2b-st-partial { color: var(--b2b-warning); }
+.b2b-st-not_received { color: var(--b2b-critical); }
+.b2b-st-awaiting { color: var(--b2b-muted); }
+.b2b-tracker td { vertical-align: top; }
+.b2b-cell { min-width: 150px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--b2b-line); border-left-width: 4px; }
+.b2b-cell-received { border-left-color: var(--b2b-good); }
+.b2b-cell-partial { border-left-color: var(--b2b-warning); }
+.b2b-cell-not_received { border-left-color: var(--b2b-critical); }
+.b2b-cell-awaiting { border-left-color: var(--b2b-neutral); }
+.b2b-cell-top { display: flex; align-items: center; gap: 6px; }
+.b2b-cell-received .b2b-cell-top i { color: var(--b2b-good); }
+.b2b-cell-partial .b2b-cell-top i { color: var(--b2b-warning); }
+.b2b-cell-not_received .b2b-cell-top i { color: var(--b2b-critical); }
+.b2b-cell-name { margin-left: auto; color: var(--b2b-muted); font-size: 11px; }
+.b2b-cell-amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+.b2b-cell-note { color: var(--b2b-muted); font-size: 12px; }
