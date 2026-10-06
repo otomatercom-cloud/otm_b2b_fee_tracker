@@ -174,3 +174,4 @@
 .b2b-cell-name { margin-left: auto; color: var(--b2b-muted); font-size: 11px; }
 .b2b-cell-amt { font-variant-numeric: tabular-nums; font-weight: 600; }
 .b2b-cell-note { color: var(--b2b-muted); font-size: 12px; }
+.b2b-cell-pay { font-size: 12px; margin-top: 2px; }

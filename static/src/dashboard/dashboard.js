@@ -72,6 +72,21 @@ export class B2bFeeDashboard extends Component {
         return counts;
     }
 
+    registerPayment(row, c) {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Register Payment",
+            res_model: "otm.b2bfee.payment",
+            views: [[false, "form"]],
+            target: "current",
+            context: {
+                default_college_id: row.college_id,
+                default_batch_id: row.batch_id,
+                default_amount: c.balance,
+            },
+        });
+    }
+
     setTrackerFilter(value) {
         this.state.trackerFilter = value;
     }

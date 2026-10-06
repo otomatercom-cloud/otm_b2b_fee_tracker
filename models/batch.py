@@ -185,6 +185,18 @@ class B2bFeeBatch(models.Model):
             "context": {"default_batch_id": self.id},
         }
 
+    def action_register_payment(self):
+        """Open a new payment pre-filled for this batch."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window", "name": _("Register Payment"),
+            "res_model": "otm.b2bfee.payment", "view_mode": "form", "target": "current",
+            "views": [(False, "form")],
+            "context": {"default_college_id": self.college_id.id,
+                        "default_batch_id": self.id,
+                        "default_amount": self.pending},
+        }
+
     def action_view_installments(self):
         self.ensure_one()
         return {

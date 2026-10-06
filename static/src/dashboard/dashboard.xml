@@ -253,6 +253,10 @@
                                                     <span t-if="c.status === 'partial'" class="b2b-foot"> of <t t-esc="fmt(c.amount)"/></span>
                                                 </div>
                                                 <div class="b2b-cell-note" t-esc="cellNote(c)"/>
+                                                <button t-if="c.status !== 'received'" class="b2b-link b2b-cell-pay"
+                                                        t-on-click="() => this.registerPayment(row, c)">
+                                                    <i class="fa fa-plus"/> Register payment
+                                                </button>
                                             </div>
                                             <span t-else="" class="b2b-foot">–</span>
                                         </td>

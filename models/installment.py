@@ -91,3 +91,10 @@ class B2bFeeInstallment(models.Model):
             if any(rec[key] != val for key, val in vals.items()):
                 rec.write(vals)
         return True
+
+    def action_register_payment(self):
+        """Open a new payment for this installment's batch, pre-filled with its balance."""
+        self.ensure_one()
+        action = self.batch_id.action_register_payment()
+        action["context"]["default_amount"] = self.balance
+        return action

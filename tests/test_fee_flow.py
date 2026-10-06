@@ -122,3 +122,20 @@ class TestHeadCountOnly(TransactionCase):
         self.assertIn(grp, base.implied_ids)
         self.env["res.config.settings"].create({"group_b2bfee_students": False}).execute()
         self.assertNotIn(grp, base.implied_ids)
+
+
+@tagged("post_install", "-at_install")
+class TestRegisterPaymentAction(TransactionCase):
+
+    def test_01_register_payment_prefills(self):
+        college = self.env["otm.b2bfee.college"].create({"name": "RP College"})
+        program = self.env["otm.b2bfee.program"].create({"name": "RP Program"})
+        batch = self.env["otm.b2bfee.batch"].create({
+            "college_id": college.id, "program_id": program.id, "academic_year": "RP-1",
+            "fee_per_student": 1000.0, "student_total": 10,
+            "plan_line_ids": [(0, 0, {"name": "T1", "due_date": date.today(), "percent": 100})]})
+        batch.action_confirm()
+        ctx = batch.action_register_payment()["context"]
+        self.assertEqual((ctx["default_batch_id"], ctx["default_amount"]), (batch.id, 10000.0))
+        ctx = batch.installment_ids.action_register_payment()["context"]
+        self.assertEqual(ctx["default_amount"], 10000.0)

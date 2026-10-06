@@ -29,8 +29,10 @@
         <field name="arch" type="xml">
             <form create="0" delete="0">
                 <header>
-                    <button name="action_send_reminder" string="Send Reminder Now" type="object"
+                    <button name="action_register_payment" string="Register Payment" type="object"
                             class="btn-primary" invisible="state == 'paid'"/>
+                    <button name="action_send_reminder" string="Send Reminder Now" type="object"
+                            invisible="state == 'paid'"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="upcoming,due,partial,paid"/>
                 </header>

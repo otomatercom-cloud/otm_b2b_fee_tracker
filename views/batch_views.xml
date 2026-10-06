@@ -30,6 +30,8 @@
                 <header>
                     <button name="action_confirm" string="Confirm &amp; Generate Installments"
                             type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_register_payment" string="Register Payment"
+                            type="object" class="btn-primary" invisible="state != 'running'"/>
                     <button name="action_recompute_installments" string="Recompute Installments"
                             type="object" invisible="state != 'running'"
                             confirm="Unpaid installments will be re-split using the current number of students. Continue?"/>
