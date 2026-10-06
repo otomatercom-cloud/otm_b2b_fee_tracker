@@ -118,7 +118,11 @@ class B2bFeeWhatsapp(models.AbstractModel):
                 result["sent"] = True
                 result["message_id"] = body["messages"][0].get("id")
                 return result
-            error = (body.get("error") or {}).get("message") or (response.text or "")[:200]
+            err = body.get("error") or {}
+            error = err.get("message") or (response.text or "")[:200]
+            details = (err.get("error_data") or {}).get("details")
+            if details and details not in error:
+                error = "%s - %s" % (error, details)
             result["note"] = ("Meta API error %s: %s [template '%s', language '%s']" % (
                 response.status_code, error, template, conf["language"]))[:400]
         except Exception as exc:  # network, timeout, bad JSON... never block the caller
