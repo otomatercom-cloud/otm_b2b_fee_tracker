@@ -79,15 +79,20 @@
                     </group>
                     <notebook>
                         <page name="page_terms" string="Payment Terms">
-                            <field name="plan_line_ids" readonly="state != 'draft'">
+                            <field name="plan_line_ids" readonly="state in ('closed', 'cancel')">
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="name"/>
-                                    <field name="due_date"/>
-                                    <field name="percent" sum="Total %"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="name" readonly="parent.state != 'draft'"/>
+                                    <field name="due_date" readonly="parent.state != 'draft'"/>
+                                    <field name="student_count"/>
+                                    <field name="fee_per_student"/>
+                                    <field name="term_amount" sum="Total"/>
+                                    <field name="percent" sum="Total %" optional="hide"
+                                           readonly="parent.state != 'draft'"/>
                                 </list>
                             </field>
-                            <div class="text-muted">Terms must total 100% before the batch can be confirmed.</div>
+                            <div class="text-muted">Enter the students and fee on each term: the term amount is calculated and the batch total is the sum of the terms. The count can be changed later for a term that has no payment yet. Alternatively leave students empty and use Percent (terms must total 100%).</div>
                         </page>
                         <page name="page_students" string="Students"
                               groups="otm_b2b_fee_tracker.group_b2bfee_student_entry">

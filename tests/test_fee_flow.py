@@ -139,3 +139,57 @@ class TestRegisterPaymentAction(TransactionCase):
         self.assertEqual((ctx["default_batch_id"], ctx["default_amount"]), (batch.id, 10000.0))
         ctx = batch.installment_ids.action_register_payment()["context"]
         self.assertEqual(ctx["default_amount"], 10000.0)
+
+
+@tagged("post_install", "-at_install")
+class TestTermWiseStudents(TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        college = cls.env["otm.b2bfee.college"].create({"name": "Term College"})
+        program = cls.env["otm.b2bfee.program"].create({"name": "TW Program"})
+        cls.batch = cls.env["otm.b2bfee.batch"].create({
+            "college_id": college.id, "program_id": program.id, "academic_year": "TW-1",
+            "fee_per_student": 5000.0,
+            "plan_line_ids": [
+                (0, 0, {"name": "Sem 1", "due_date": date.today() - timedelta(days=2),
+                        "student_count": 20}),
+                (0, 0, {"name": "Sem 2", "due_date": date.today() + timedelta(days=60),
+                        "student_count": 18}),
+            ]})
+        cls.sem1, cls.sem2 = cls.batch.plan_line_ids.sorted("sequence")
+
+    def test_01_amount_is_students_times_fee(self):
+        self.assertEqual(self.sem1.fee_per_student, 5000.0)  # defaults from the batch
+        self.assertEqual(self.sem1.term_amount, 100000.0)
+        self.assertEqual(self.sem2.term_amount, 90000.0)
+        self.assertEqual(self.batch.total_amount, 190000.0)
+
+    def test_02_confirm_uses_term_amounts_without_percent(self):
+        self.batch.action_confirm()
+        amounts = {i.term_name: i.amount for i in self.batch.installment_ids}
+        self.assertEqual(amounts, {"Sem 1": 100000.0, "Sem 2": 90000.0})
+
+    def test_03_count_change_updates_unpaid_term_only(self):
+        self.batch.action_confirm()
+        pay = self.env["otm.b2bfee.payment"].create({
+            "college_id": self.batch.college_id.id, "batch_id": self.batch.id,
+            "amount": 50000.0})
+        pay.action_post()
+        self.sem2.student_count = 15  # later term can change
+        inst = {i.term_name: i.amount for i in self.batch.installment_ids}
+        self.assertEqual(inst["Sem 2"], 75000.0)
+        self.assertEqual(self.batch.total_amount, 175000.0)
+        with self.assertRaises(UserError):  # Sem 1 already has a payment
+            self.sem1.student_count = 19
+
+    def test_04_per_term_fee_override(self):
+        self.sem2.fee_per_student = 6000.0
+        self.assertEqual(self.sem2.term_amount, 108000.0)
+
+    def test_05_mixed_terms_cannot_confirm(self):
+        self.sem2.student_count = 0
+        self.sem2.percent = 100
+        with self.assertRaises(UserError):
+            self.batch.action_confirm()

@@ -64,11 +64,21 @@ class B2bFeeBatch(models.Model):
         "check(fee_per_student >= 0)", "Fee per student cannot be negative.")
 
     # ------------------------------------------------------------------ computes
-    @api.depends("student_ids.state", "student_ids.fee", "student_total", "fee_per_student")
+    def _term_mode(self):
+        """True when every payment term carries its own student count."""
+        self.ensure_one()
+        lines = self.plan_line_ids
+        return bool(lines) and all(l.student_count > 0 for l in lines)
+
+    @api.depends("student_ids.state", "student_ids.fee", "student_total", "fee_per_student",
+                 "plan_line_ids.student_count", "plan_line_ids.term_amount")
     def _compute_students(self):
         for rec in self:
             active = rec.student_ids.filtered(lambda s: s.state == "active")
-            if active:  # students entered one by one: exact fees (with discounts)
+            if rec._term_mode():  # students x fee entered term by term
+                rec.student_count = max(rec.plan_line_ids.mapped("student_count"))
+                rec.total_amount = sum(rec.plan_line_ids.mapped("term_amount"))
+            elif active:  # students entered one by one: exact fees (with discounts)
                 rec.student_count = len(active)
                 rec.total_amount = sum(active.mapped("fee"))
             else:  # head-count only
@@ -120,6 +130,8 @@ class B2bFeeBatch(models.Model):
         self.ensure_one()
         cur = self.currency_id
         lines = self.plan_line_ids.sorted(lambda l: (l.sequence, l.id))
+        if self._term_mode():
+            return [(line, line.term_amount) for line in lines]
         result, running = [], 0.0
         for idx, line in enumerate(lines):
             if idx == len(lines) - 1:
@@ -147,12 +159,20 @@ class B2bFeeBatch(models.Model):
         for rec in self.filtered(lambda r: r.state == "draft"):
             if not rec.plan_line_ids:
                 raise UserError(_("Add at least one payment term before confirming."))
-            if float_compare(rec.plan_percent, 100.0, precision_digits=2) != 0:
-                raise UserError(_(
-                    "Payment terms must total 100%% (currently %(p).2f%%).",
-                    p=rec.plan_percent))
-            if not rec.student_count:
-                raise UserError(_("Enter the number of students before confirming."))
+            if rec._term_mode():
+                if not rec.total_amount:
+                    raise UserError(_("Enter the fee per student before confirming."))
+            else:
+                if any(rec.plan_line_ids.mapped("student_count")):
+                    raise UserError(_(
+                        "Enter the number of students on every payment term, "
+                        "or on none of them."))
+                if float_compare(rec.plan_percent, 100.0, precision_digits=2) != 0:
+                    raise UserError(_(
+                        "Payment terms must total 100%% (currently %(p).2f%%).",
+                        p=rec.plan_percent))
+                if not rec.student_count:
+                    raise UserError(_("Enter the number of students before confirming."))
             rec._generate_installments()
             rec.state = "running"
 
