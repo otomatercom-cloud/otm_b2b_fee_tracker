@@ -58,8 +58,8 @@ class TestTeamAlerts(TransactionCase):
         self.assertNotIn("919847022222", self._numbers(post))
         self.assertEqual(self.acc.last_daily, date.today())
         params = [p["text"] for p in post.call_args.kwargs["json"]["template"]["components"][0]["parameters"]]
-        self.assertEqual(len(params), 7)
-        self.assertIn("Team College", params[6])
+        self.assertEqual(len(params), 8)
+        self.assertIn("Team College", params[7])
 
     def test_02_weekly_summary_goes_to_directors_on_monday(self):
         monday = date.today() - timedelta(days=date.today().weekday())

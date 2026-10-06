@@ -23,7 +23,8 @@ class B2bFeeInternalNotify(models.AbstractModel):
 
     @api.model
     def _money(self, amount):
-        return formatLang(self.env, amount, currency_obj=self.env.company.currency_id)
+        text = formatLang(self.env, amount, currency_obj=self.env.company.currency_id)
+        return text.replace("\xa0", " ")
 
     @api.model
     def _deliver(self, staff, kind, params, note_label):
@@ -31,7 +32,7 @@ class B2bFeeInternalNotify(models.AbstractModel):
         result = self.env["otm.b2bfee.whatsapp"].send_template(
             staff.whatsapp_number, kind, params)
         outcome = _("sent") if result["sent"] else (result["note"] or _("not sent"))
-        staff.sudo().write({"last_result": "%s: %s" % (note_label, outcome)[:200]})
+        staff.sudo().write({"last_result": "%s: %s" % (note_label, outcome)[:400]})
         staff.sudo().message_post(body=_("%(label)s – %(outcome)s", label=note_label, outcome=outcome))
         return result
 
@@ -40,15 +41,15 @@ class B2bFeeInternalNotify(models.AbstractModel):
     def _summary_params(self):
         data = self.env["otm.b2bfee.dashboard"].get_dashboard_data({})
         kpis = data["kpis"]
-        late = sorted((c for c in data["colleges"] if c["overdue"] > 0),
-                      key=lambda c: -c["overdue"])
-        top = "; ".join("%s %s (%s d)" % (c["name"], self._money(c["overdue"]),
-                                          c["oldest_overdue_days"]) for c in late[:3])
+        pending = sorted((c for c in data["colleges"] if c["pending"] > 0),
+                         key=lambda c: -c["pending"])
+        top = "; ".join("%s %s" % (c["name"], self._money(c["pending"])) for c in pending[:5])
         params = [
             fields.Date.context_today(self).strftime("%d %b %Y"),
+            str(len(data["colleges"])), str(len(pending)),
             self._money(kpis["collected"]), self._money(kpis["pending"]),
-            self._money(kpis["overdue"]), str(len(late)),
-            self._money(kpis["due_7"]), top or _("None"),
+            self._money(kpis["overdue"]), self._money(kpis["due_7"]),
+            top or _("None"),
         ]
         return params, kpis
 
