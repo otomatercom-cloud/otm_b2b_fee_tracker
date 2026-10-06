@@ -71,6 +71,9 @@ class ResConfigSettings(models.TransientModel):
     b2bfee_wa_tpl_staff_escalation = fields.Char(
         string="Team Escalation Template",
         config_parameter="otm_b2b_fee_tracker.wa_tpl_staff_escalation")
+    b2bfee_wa_waba_id = fields.Char(
+        string="WhatsApp Business Account ID",
+        config_parameter="otm_b2b_fee_tracker.wa_waba_id")
     b2bfee_wa_test_number = fields.Char(string="Test Number")
 
     def set_values(self):
@@ -87,6 +90,17 @@ class ResConfigSettings(models.TransientModel):
                         field=rec._fields[fname].string, value=value[:60]))
                 rec[fname] = value
         return super().set_values()
+
+    def action_b2bfee_wa_check(self):
+        """Save, then ask Meta which phone number and templates this token can see."""
+        self.ensure_one()
+        self.set_values()
+        lines = self.env["otm.b2bfee.whatsapp"].diagnose()
+        return {
+            "type": "ir.actions.client", "tag": "display_notification",
+            "params": {"title": _("WhatsApp connection check"),
+                       "message": "\n".join(lines), "type": "info", "sticky": True},
+        }
 
     def action_b2bfee_wa_test(self):
         """Save the settings, then send the 'upcoming' template to a test number."""

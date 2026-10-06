@@ -60,6 +60,12 @@
                                  help="Permanent system-user token with whatsapp_business_messaging permission. Stored in system parameters, visible only to administrators.">
                             <field name="b2bfee_wa_token" password="True"/>
                         </setting>
+                        <setting id="b2bfee_wa_waba_setting" string="WhatsApp Business Account ID"
+                                 help="Shown on Meta's WhatsApp > API Setup page, under the Phone Number ID. Needed only for the connection check below.">
+                            <field name="b2bfee_wa_waba_id"/>
+                            <button name="action_b2bfee_wa_check" type="object"
+                                    string="Check connection" class="btn-link"/>
+                        </setting>
                         <setting id="b2bfee_wa_version_setting" string="Graph API version"
                                  help="Keep v21.0 unless Meta asks you to change it.">
                             <field name="b2bfee_wa_api_version"/>

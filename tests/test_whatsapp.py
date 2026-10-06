@@ -180,3 +180,21 @@ class TestWhatsapp(TransactionCase):
             self.first._process_reminder("overdue_1", "overdue", self._conf())
         post.assert_not_called()
         self.assertIn("Invalid WhatsApp template name", self.first.log_ids.wa_note)
+
+    def test_14_diagnose_reports_phone_and_templates(self):
+        self._set("wa_waba_id", "999")
+
+        def fake_get(url, params=None, headers=None, timeout=None):
+            resp = MagicMock(status_code=200)
+            if url.endswith("/999/phone_numbers"):
+                resp.json.return_value = {"data": [{"id": "OTHER", "display_phone_number": "+1 555"}]}
+            elif url.endswith("/999/message_templates"):
+                resp.json.return_value = {"data": [{"name": "fee_overdue", "language": "en", "status": "APPROVED"}]}
+            else:
+                resp.json.return_value = {"display_phone_number": "+91 99999", "verified_name": "Acme"}
+            return resp
+
+        with patch("odoo.addons.otm_b2b_fee_tracker.models.whatsapp.requests.get", side_effect=fake_get):
+            text = " | ".join(self.env["otm.b2bfee.whatsapp"].diagnose())
+        self.assertIn("PROBLEM: phone number 1234567890 is NOT in business account 999", text)
+        self.assertIn("fee_overdue [en, APPROVED]", text)

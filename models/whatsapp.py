@@ -41,6 +41,7 @@ class B2bFeeWhatsapp(models.AbstractModel):
             "enabled": get("wa_enabled", "no") == "yes",
             "receipt": get("wa_receipt", "yes") == "yes",
             "phone_id": get("wa_phone_number_id").strip(),
+            "waba_id": re.sub(r"\D", "", get("wa_waba_id")),
             "token": get("wa_token").strip(),
             "version": get("wa_api_version", "v21.0").strip(),
             "language": get("wa_language", "en").strip(),
@@ -124,3 +125,54 @@ class B2bFeeWhatsapp(models.AbstractModel):
             result["note"] = ("WhatsApp request failed: %s" % exc)[:250]
         _logger.warning("B2B fee WhatsApp to %s failed: %s", number, result["note"])
         return result
+
+    @api.model
+    def diagnose(self):
+        """Ask Meta what this token can see. Returns a list of plain-text lines. Never raises."""
+        conf = self._conf()
+        base = "https://graph.facebook.com/%s/" % conf["version"]
+        headers = {"Authorization": "Bearer " + conf["token"]}
+        lines = []
+
+        def fetch(path, params=None):
+            try:
+                resp = requests.get(base + path, params=params, headers=headers, timeout=10)
+                body = resp.json()
+            except Exception as exc:  # noqa: BLE001
+                return None, "request failed: %s" % exc
+            if resp.status_code != 200:
+                return None, (body.get("error") or {}).get("message") or str(resp.status_code)
+            return body, None
+
+        if not (conf["phone_id"] and conf["token"]):
+            return ["Phone Number ID or access token is missing."]
+        phone, err = fetch(conf["phone_id"], {"fields": "display_phone_number,verified_name,quality_rating"})
+        if err:
+            lines.append("Phone Number ID %s: NOT usable with this token (%s)" % (conf["phone_id"], err))
+        else:
+            lines.append("Phone Number ID %s = %s (%s)" % (
+                conf["phone_id"], phone.get("display_phone_number"), phone.get("verified_name")))
+        if not conf["waba_id"]:
+            lines.append("Enter the WhatsApp Business Account ID in settings to also check the templates.")
+            return lines
+        numbers, err = fetch(conf["waba_id"] + "/phone_numbers", {"fields": "id,display_phone_number"})
+        if err:
+            lines.append("Business account %s: cannot read phone numbers (%s)" % (conf["waba_id"], err))
+        else:
+            ids = [n.get("id") for n in numbers.get("data", [])]
+            if conf["phone_id"] in ids:
+                lines.append("OK: this phone number belongs to business account %s." % conf["waba_id"])
+            else:
+                lines.append("PROBLEM: phone number %s is NOT in business account %s. It has: %s" % (
+                    conf["phone_id"], conf["waba_id"],
+                    ", ".join("%s (%s)" % (n.get("id"), n.get("display_phone_number"))
+                              for n in numbers.get("data", [])) or "no numbers"))
+        templates, err = fetch(conf["waba_id"] + "/message_templates",
+                               {"fields": "name,language,status", "limit": 100})
+        if err:
+            lines.append("Cannot read templates (%s)" % err)
+        else:
+            rows = ["%s [%s, %s]" % (t.get("name"), t.get("language"), t.get("status"))
+                    for t in templates.get("data", [])]
+            lines.append("Templates in this account: " + ("; ".join(rows) or "none"))
+        return lines
