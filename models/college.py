@@ -53,7 +53,8 @@ class B2bFeeCollege(models.Model):
         self.ensure_one()
         return {
             "type": "ir.actions.client", "tag": "otm_b2b_fee_college_dashboard",
-            "name": self.name, "context": {"college_id": self.id},
+            "name": self.name,
+            "context": {"college_id": self.id, "active_id": self.id},
         }
 
     def action_view_batches(self):

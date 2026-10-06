@@ -7,8 +7,11 @@ export class B2bFeeCollegeDashboard extends B2bFeeDashboard {
 
     setup() {
         super.setup();
-        const ctx = this.props.action?.context || {};
-        this.collegeId = ctx.college_id || this.props.action?.params?.college_id;
+        // After a page reload or a breadcrumb jump Odoo restores only `active_id`.
+        const action = this.props.action || {};
+        const ctx = action.context || {};
+        this.collegeId =
+            ctx.college_id || ctx.active_id || action.params?.college_id || action.params?.active_id;
         this.pay = useState({
             open: false,
             busy: false,

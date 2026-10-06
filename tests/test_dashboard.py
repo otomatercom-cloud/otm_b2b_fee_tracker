@@ -130,3 +130,11 @@ class TestDashboard(TransactionCase):
         self.assertEqual(call_kw(Dash, "get_college_data", [self.late.id], {})["kpis"]["collected"], 0.0)
         action = self.good.action_open_dashboard()
         self.assertEqual(action["context"]["college_id"], self.good.id)
+
+    def test_08_missing_college_id_is_a_friendly_error(self):
+        from odoo.exceptions import UserError
+        Dash = self.env(user=self.user)["otm.b2bfee.college.dashboard"]
+        for bad in (None, False, "abc"):
+            with self.assertRaises(UserError):
+                Dash.get_college_data(bad)
+        self.assertEqual(self.good.action_open_dashboard()["context"]["active_id"], self.good.id)

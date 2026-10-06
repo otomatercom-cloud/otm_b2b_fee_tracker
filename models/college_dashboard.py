@@ -9,7 +9,11 @@ class B2bFeeCollegeDashboard(models.AbstractModel):
 
     @api.model
     def get_college_data(self, college_id):
-        college = self.env["otm.b2bfee.college"].browse(int(college_id)).exists()
+        try:
+            college_id = int(college_id)
+        except (TypeError, ValueError):
+            raise UserError(_("Open this dashboard from a college."))
+        college = self.env["otm.b2bfee.college"].browse(college_id).exists()
         if not college:
             raise UserError(_("This college no longer exists."))
         data = self.env["otm.b2bfee.dashboard"].get_dashboard_data({"college_id": college.id})

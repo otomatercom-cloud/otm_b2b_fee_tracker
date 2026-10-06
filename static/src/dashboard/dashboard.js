@@ -297,7 +297,7 @@ export class B2bFeeDashboard extends Component {
             type: "ir.actions.client",
             tag: "otm_b2b_fee_college_dashboard",
             name: college.name,
-            context: { college_id: college.id },
+            context: { college_id: college.id, active_id: college.id },
         });
     }
     openCollegeDues(college) {
