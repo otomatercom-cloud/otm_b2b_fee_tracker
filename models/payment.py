@@ -125,6 +125,7 @@ class B2bFeePayment(models.Model):
             wa_conf = self.env["otm.b2bfee.whatsapp"]._conf()
             if wa_conf["enabled"] and wa_conf["receipt"]:
                 rec._send_whatsapp_receipt()
+            self.env["otm.b2bfee.internal.notify"].notify_payment(rec)
 
     def _send_receipt(self, silent=False):
         """Queue the receipt email (PDF attached by the template). Never blocks posting."""

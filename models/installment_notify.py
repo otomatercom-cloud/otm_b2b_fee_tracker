@@ -141,6 +141,7 @@ class B2bFeeInstallmentNotify(models.Model):
                         manager, _("Escalation: overdue fees – %s") % self.college_id.name,
                         note_txt)
                 escalated = bool(managers)
+                self.env["otm.b2bfee.internal.notify"].notify_escalation(self)
         self.env["otm.b2bfee.reminder.log"].sudo().create({
             "installment_id": self.id, "trigger_key": key,
             "kind": "manual" if manual else kind,

@@ -72,6 +72,12 @@
                             <field name="b2bfee_wa_tpl_overdue"/>
                             <field name="b2bfee_wa_tpl_receipt"/>
                         </setting>
+                        <setting id="b2bfee_wa_staff_templates_setting" string="Accounts team and directors templates"
+                                 help="Internal messages. Summary: {{1}} date, {{2}} collected, {{3}} pending, {{4}} overdue, {{5}} colleges overdue, {{6}} due in 7 days, {{7}} top overdue. Payment alert: {{1}} college, {{2}} amount, {{3}} program, {{4}} receipt, {{5}} batch pending. Escalation: {{1}} college, {{2}} term, {{3}} program, {{4}} days overdue, {{5}} balance.">
+                            <field name="b2bfee_wa_tpl_summary"/>
+                            <field name="b2bfee_wa_tpl_staff_payment"/>
+                            <field name="b2bfee_wa_tpl_staff_escalation"/>
+                        </setting>
                         <setting id="b2bfee_wa_test_setting" string="Send a test"
                                  help="Saves the settings and sends the 'Upcoming' template with sample values.">
                             <field name="b2bfee_wa_test_number" placeholder="e.g. 98470 12345"/>

@@ -60,6 +60,15 @@ class ResConfigSettings(models.TransientModel):
     b2bfee_wa_tpl_receipt = fields.Char(
         string="Template: Receipt",
         config_parameter="otm_b2b_fee_tracker.wa_tpl_receipt")
+    b2bfee_wa_tpl_summary = fields.Char(
+        string="Team Summary Template",
+        config_parameter="otm_b2b_fee_tracker.wa_tpl_summary")
+    b2bfee_wa_tpl_staff_payment = fields.Char(
+        string="Team Payment Alert Template",
+        config_parameter="otm_b2b_fee_tracker.wa_tpl_staff_payment")
+    b2bfee_wa_tpl_staff_escalation = fields.Char(
+        string="Team Escalation Template",
+        config_parameter="otm_b2b_fee_tracker.wa_tpl_staff_escalation")
     b2bfee_wa_test_number = fields.Char(string="Test Number")
 
     def action_b2bfee_wa_test(self):

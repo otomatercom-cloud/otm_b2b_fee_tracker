@@ -14,6 +14,9 @@ TEMPLATE_KEYS = {
     "upcoming": "wa_tpl_upcoming",
     "overdue": "wa_tpl_overdue",
     "receipt": "wa_tpl_receipt",
+    "summary": "wa_tpl_summary",
+    "staff_payment": "wa_tpl_staff_payment",
+    "staff_escalation": "wa_tpl_staff_escalation",
 }
 
 
@@ -60,7 +63,7 @@ class B2bFeeWhatsapp(models.AbstractModel):
 
     @api.model
     def send_template(self, raw_number, kind, params):
-        """Send the configured template of `kind` ('upcoming'|'overdue'|'receipt').
+        """Send the configured template of `kind` (see TEMPLATE_KEYS).
 
         Returns {"sent": bool, "to": str|False, "message_id": str|False, "note": str|False}.
         """
@@ -78,7 +81,7 @@ class B2bFeeWhatsapp(models.AbstractModel):
             return result
         number = self.normalize_number(raw_number, conf["country_code"])
         if not number:
-            result["note"] = "College has no valid WhatsApp number"
+            result["note"] = "No valid WhatsApp number"
             return result
         result["to"] = number
 

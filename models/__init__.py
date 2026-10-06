@@ -6,8 +6,10 @@ from . import student
 from . import installment
 from . import payment
 from . import whatsapp
+from . import staff
 from . import reminder_log
 from . import installment_notify
+from . import internal_notify
 from . import res_config_settings
 from . import dashboard
 from . import college_dashboard

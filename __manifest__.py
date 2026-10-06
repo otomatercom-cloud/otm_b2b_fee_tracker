@@ -27,6 +27,7 @@ FIFO allocation and daily installment status refresh.
         "views/installment_views.xml",
         "views/payment_views.xml",
         "views/reminder_log_views.xml",
+        "views/staff_views.xml",
         "views/res_config_settings_views.xml",
         "views/dashboard_views.xml",
         "views/menus.xml",

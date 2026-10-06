@@ -24,4 +24,6 @@
               sequence="90" groups="group_b2bfee_manager"/>
     <menuitem id="menu_b2bfee_programs" name="Programs" parent="menu_b2bfee_config"
               action="action_b2bfee_program" sequence="10"/>
+    <menuitem id="menu_b2bfee_staff" name="Team WhatsApp Alerts" parent="menu_b2bfee_config"
+              action="action_b2bfee_staff" sequence="20"/>
 </odoo>
