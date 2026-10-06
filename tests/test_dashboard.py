@@ -107,3 +107,26 @@ class TestDashboard(TransactionCase):
         self.assertEqual([c["status"] for c in late], ["partial", "awaiting", "awaiting"])
         self.assertEqual(late[0]["balance"], 24000.0)
         self.assertEqual(tracker["Good College"]["collected"], 34000.0)
+
+    def test_07_college_dashboard_and_quick_payment(self):
+        Dash = self.env(user=self.user)["otm.b2bfee.college.dashboard"]
+        data = call_kw(Dash, "get_college_data", [self.good.id], {})
+        self.assertEqual(data["college"]["name"], "Good College")
+        self.assertEqual(len(data["tracker"]), 1)
+        self.assertTrue(data["batches"][0]["payable"])
+        self.assertIn(data["stats"]["health"], ("good", "watch", "risk"))
+        res = call_kw(Dash, "quick_payment", [self.good.id], {"vals": {
+            "batch_id": str(self.good_batch.id), "amount": "34000", "payment_mode": "upi",
+            "reference": "UTR1"}})
+        pay = self.env["otm.b2bfee.payment"].browse(res["id"])
+        self.assertEqual((pay.state, pay.payment_mode, pay.amount), ("posted", "upi", 34000.0))
+        data = call_kw(Dash, "get_college_data", [self.good.id], {})
+        self.assertEqual(data["kpis"]["collected"], 34000.0)
+        self.assertEqual(data["payments"][0]["reference"], "UTR1")
+        self.assertEqual(data["tracker"][0]["cells"][0]["status"], "received")
+        with self.assertRaises(Exception):
+            call_kw(Dash, "quick_payment", [self.good.id], {"vals": {"batch_id": self.good_batch.id, "amount": 0}})
+        # other college is untouched
+        self.assertEqual(call_kw(Dash, "get_college_data", [self.late.id], {})["kpis"]["collected"], 0.0)
+        action = self.good.action_open_dashboard()
+        self.assertEqual(action["context"]["college_id"], self.good.id)

@@ -70,58 +70,7 @@
                         </button>
                     </section>
 
-                    <!-- Trend + ageing -->
-                    <section class="b2b-row b2b-row-2-1">
-                        <div class="b2b-card">
-                            <div class="b2b-card-head">
-                                <h2>Expected vs collected</h2>
-                                <button class="b2b-link" t-on-click="() => this.state.trendTable = !this.state.trendTable">
-                                    <t t-esc="state.trendTable ? 'Show chart' : 'View as table'"/>
-                                </button>
-                            </div>
-                            <div class="b2b-legend">
-                                <span><i class="b2b-swatch b2b-neutral"/>Expected (by due month)</span>
-                                <span><i class="b2b-swatch b2b-blue"/>Collected (by payment month)</span>
-                            </div>
-                            <div t-if="!state.trendTable" class="b2b-trend">
-                                <t t-foreach="state.data.trend" t-as="m" t-key="m.label">
-                                    <div class="b2b-trend-col" t-on-mouseenter="(ev) => this.tipTrend(ev, m)"
-                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
-                                        <div class="b2b-trend-bars">
-                                            <span class="b2b-bar b2b-neutral" t-attf-style="height: #{pct(m.expected, trendMax)}%"/>
-                                            <span class="b2b-bar b2b-blue" t-attf-style="height: #{pct(m.collected, trendMax)}%"/>
-                                        </div>
-                                        <span class="b2b-axis" t-esc="m.label"/>
-                                    </div>
-                                </t>
-                            </div>
-                            <table t-else="" class="b2b-table">
-                                <thead><tr><th>Month</th><th class="num">Expected</th><th class="num">Collected</th></tr></thead>
-                                <tbody>
-                                    <tr t-foreach="state.data.trend" t-as="m" t-key="m.label">
-                                        <td t-esc="m.label"/>
-                                        <td class="num" t-esc="fmt(m.expected)"/>
-                                        <td class="num" t-esc="fmt(m.collected)"/>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="b2b-card">
-                            <div class="b2b-card-head"><h2>Overdue ageing</h2></div>
-                            <div class="b2b-hbars">
-                                <t t-foreach="state.data.ageing" t-as="a" t-key="a.label">
-                                    <div class="b2b-hrow" t-on-mouseenter="(ev) => this.tipAmount(ev, a.label, a.count + ' installment(s)', a.amount, 'var(--b2b-critical)')"
-                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
-                                        <span class="b2b-hlabel" t-esc="a.label"/>
-                                        <span class="b2b-htrack"><span class="b2b-hfill b2b-critical" t-attf-style="width: #{pct(a.amount, ageingMax)}%; opacity: #{0.4 + 0.2 * a_index}"/></span>
-                                        <span class="b2b-hvalue" t-esc="compact(a.amount)"/>
-                                    </div>
-                                </t>
-                            </div>
-                            <p class="b2b-foot">Balance past due date, by days late.</p>
-                        </div>
-                    </section>
+                    <t t-call="otm_b2b_fee_tracker.TrendAgeing"/>
 
                     <!-- Colleges + terms -->
                     <section class="b2b-row b2b-row-1-1">
@@ -205,75 +154,13 @@
                         </div>
                     </section>
 
-                    <!-- Payment tracker -->
-                    <section class="b2b-card">
-                        <div class="b2b-card-head">
-                            <h2>Payment tracker</h2>
-                            <div class="b2b-chips">
-                                <button t-attf-class="b2b-chip #{state.trackerFilter === 'all' ? 'is-on' : ''}"
-                                        t-on-click="() => this.setTrackerFilter('all')">All</button>
-                                <button t-attf-class="b2b-chip #{state.trackerFilter === 'pending' ? 'is-on' : ''}"
-                                        t-on-click="() => this.setTrackerFilter('pending')">Not fully received</button>
-                                <button t-attf-class="b2b-chip #{state.trackerFilter === 'received' ? 'is-on' : ''}"
-                                        t-on-click="() => this.setTrackerFilter('received')">Fully received</button>
-                            </div>
-                        </div>
-                        <div class="b2b-legend">
-                            <span><i class="fa fa-check-circle b2b-st-received"/> Received <t t-esc="trackerCounts.received"/></span>
-                            <span><i class="fa fa-adjust b2b-st-partial"/> Part received <t t-esc="trackerCounts.partial"/></span>
-                            <span><i class="fa fa-times-circle b2b-st-not_received"/> Not received <t t-esc="trackerCounts.not_received"/></span>
-                            <span><i class="fa fa-clock-o b2b-st-awaiting"/> Awaiting due date <t t-esc="trackerCounts.awaiting"/></span>
-                        </div>
-                        <div class="b2b-scroll" t-if="trackerRows.length">
-                            <table class="b2b-table b2b-tracker">
-                                <thead>
-                                    <tr>
-                                        <th>College · Program</th>
-                                        <th t-foreach="trackerColumns" t-as="col" t-key="col">Term <t t-esc="col + 1"/></th>
-                                        <th class="num">Received</th>
-                                        <th class="num">Not received</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr t-foreach="trackerRows" t-as="row" t-key="row.batch_id">
-                                        <td>
-                                            <button class="b2b-link" t-on-click="() => this.openCollegeDues({id: row.college_id, name: row.college})" t-esc="row.college"/>
-                                            <div class="b2b-foot"><t t-esc="row.program"/> · <t t-esc="row.year"/> · <t t-esc="row.students"/> students</div>
-                                        </td>
-                                        <td t-foreach="trackerColumns" t-as="col" t-key="col">
-                                            <t t-set="c" t-value="row.cells[col]"/>
-                                            <div t-if="c" t-attf-class="b2b-cell b2b-cell-#{c.status}">
-                                                <div class="b2b-cell-top">
-                                                    <i t-attf-class="fa #{cellIcon(c)}"/>
-                                                    <strong t-esc="cellLabel(c)"/>
-                                                    <span class="b2b-cell-name" t-esc="c.term"/>
-                                                </div>
-                                                <div class="b2b-cell-amt">
-                                                    <t t-esc="fmt(c.status === 'received' ? c.paid : c.status === 'partial' ? c.paid : c.balance)"/>
-                                                    <span t-if="c.status === 'partial'" class="b2b-foot"> of <t t-esc="fmt(c.amount)"/></span>
-                                                </div>
-                                                <div class="b2b-cell-note" t-esc="cellNote(c)"/>
-                                                <button t-if="c.status !== 'received'" class="b2b-link b2b-cell-pay"
-                                                        t-on-click="() => this.registerPayment(row, c)">
-                                                    <i class="fa fa-plus"/> Register payment
-                                                </button>
-                                            </div>
-                                            <span t-else="" class="b2b-foot">–</span>
-                                        </td>
-                                        <td class="num" t-esc="fmt(row.collected)"/>
-                                        <td class="num" t-esc="fmt(row.pending)"/>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div t-else="" class="b2b-empty">Nothing matches this filter.</div>
-                    </section>
+                    <t t-call="otm_b2b_fee_tracker.PaymentTracker"/>
 
                     <!-- College performance -->
                     <section class="b2b-card">
                         <div class="b2b-card-head">
                             <h2>College performance</h2>
-                            <span class="b2b-foot">Click a header to sort · click a college for its pending dues</span>
+                            <span class="b2b-foot">Click a header to sort · click a college to open its dashboard</span>
                         </div>
                         <div class="b2b-scroll">
                             <table class="b2b-table">
@@ -292,7 +179,7 @@
                                 </thead>
                                 <tbody>
                                     <tr t-foreach="sortedColleges" t-as="c" t-key="c.id">
-                                        <td><button class="b2b-link" t-on-click="() => this.openCollegeDues(c)" t-esc="c.name"/></td>
+                                        <td><button class="b2b-link" t-on-click="() => this.openCollege(c)" t-esc="c.name"/></td>
                                         <td class="num" t-esc="fmt(c.contract)"/>
                                         <td class="num" t-esc="fmt(c.collected)"/>
                                         <td class="num" t-esc="fmt(c.pending)"/>
@@ -351,6 +238,350 @@
                 </div>
             </t>
 
+            <div t-if="state.tip.show" class="b2b-tip" t-attf-style="left: #{state.tip.x}px; top: #{state.tip.y}px">
+                <div class="b2b-tip-title" t-esc="state.tip.title"/>
+                <div t-foreach="state.tip.rows" t-as="row" t-key="row_index" class="b2b-tip-row">
+                    <i class="b2b-swatch" t-attf-style="background: #{row.color}"/>
+                    <span t-esc="row.label"/>
+                    <strong t-esc="row.value"/>
+                </div>
+            </div>
+        </div>
+    </t>
+    <t t-name="otm_b2b_fee_tracker.PaymentTracker">
+                    <!-- Payment tracker -->
+                    <section class="b2b-card">
+                        <div class="b2b-card-head">
+                            <h2>Payment tracker</h2>
+                            <div class="b2b-chips">
+                                <button t-attf-class="b2b-chip #{state.trackerFilter === 'all' ? 'is-on' : ''}"
+                                        t-on-click="() => this.setTrackerFilter('all')">All</button>
+                                <button t-attf-class="b2b-chip #{state.trackerFilter === 'pending' ? 'is-on' : ''}"
+                                        t-on-click="() => this.setTrackerFilter('pending')">Not fully received</button>
+                                <button t-attf-class="b2b-chip #{state.trackerFilter === 'received' ? 'is-on' : ''}"
+                                        t-on-click="() => this.setTrackerFilter('received')">Fully received</button>
+                            </div>
+                        </div>
+                        <div class="b2b-legend">
+                            <span><i class="fa fa-check-circle b2b-st-received"/> Received <t t-esc="trackerCounts.received"/></span>
+                            <span><i class="fa fa-adjust b2b-st-partial"/> Part received <t t-esc="trackerCounts.partial"/></span>
+                            <span><i class="fa fa-times-circle b2b-st-not_received"/> Not received <t t-esc="trackerCounts.not_received"/></span>
+                            <span><i class="fa fa-clock-o b2b-st-awaiting"/> Awaiting due date <t t-esc="trackerCounts.awaiting"/></span>
+                        </div>
+                        <div class="b2b-scroll" t-if="trackerRows.length">
+                            <table class="b2b-table b2b-tracker">
+                                <thead>
+                                    <tr>
+                                        <th>College · Program</th>
+                                        <th t-foreach="trackerColumns" t-as="col" t-key="col">Term <t t-esc="col + 1"/></th>
+                                        <th class="num">Received</th>
+                                        <th class="num">Not received</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="trackerRows" t-as="row" t-key="row.batch_id">
+                                        <td>
+                                            <button class="b2b-link" t-on-click="() => this.openCollege({id: row.college_id, name: row.college})" t-esc="row.college"/>
+                                            <div class="b2b-foot"><t t-esc="row.program"/> · <t t-esc="row.year"/> · <t t-esc="row.students"/> students</div>
+                                        </td>
+                                        <td t-foreach="trackerColumns" t-as="col" t-key="col">
+                                            <t t-set="c" t-value="row.cells[col]"/>
+                                            <div t-if="c" t-attf-class="b2b-cell b2b-cell-#{c.status}">
+                                                <div class="b2b-cell-top">
+                                                    <i t-attf-class="fa #{cellIcon(c)}"/>
+                                                    <strong t-esc="cellLabel(c)"/>
+                                                    <span class="b2b-cell-name" t-esc="c.term"/>
+                                                </div>
+                                                <div class="b2b-cell-amt">
+                                                    <t t-esc="fmt(c.status === 'received' ? c.paid : c.status === 'partial' ? c.paid : c.balance)"/>
+                                                    <span t-if="c.status === 'partial'" class="b2b-foot"> of <t t-esc="fmt(c.amount)"/></span>
+                                                </div>
+                                                <div class="b2b-cell-note" t-esc="cellNote(c)"/>
+                                                <button t-if="c.status !== 'received'" class="b2b-link b2b-cell-pay"
+                                                        t-on-click="() => this.registerPayment(row, c)">
+                                                    <i class="fa fa-plus"/> Register payment
+                                                </button>
+                                            </div>
+                                            <span t-else="" class="b2b-foot">–</span>
+                                        </td>
+                                        <td class="num" t-esc="fmt(row.collected)"/>
+                                        <td class="num" t-esc="fmt(row.pending)"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div t-else="" class="b2b-empty">Nothing matches this filter.</div>
+                    </section>
+
+    </t>
+    <t t-name="otm_b2b_fee_tracker.TrendAgeing">
+                    <!-- Trend + ageing -->
+                    <section class="b2b-row b2b-row-2-1">
+                        <div class="b2b-card">
+                            <div class="b2b-card-head">
+                                <h2>Expected vs collected</h2>
+                                <button class="b2b-link" t-on-click="() => this.state.trendTable = !this.state.trendTable">
+                                    <t t-esc="state.trendTable ? 'Show chart' : 'View as table'"/>
+                                </button>
+                            </div>
+                            <div class="b2b-legend">
+                                <span><i class="b2b-swatch b2b-neutral"/>Expected (by due month)</span>
+                                <span><i class="b2b-swatch b2b-blue"/>Collected (by payment month)</span>
+                            </div>
+                            <div t-if="!state.trendTable" class="b2b-trend">
+                                <t t-foreach="state.data.trend" t-as="m" t-key="m.label">
+                                    <div class="b2b-trend-col" t-on-mouseenter="(ev) => this.tipTrend(ev, m)"
+                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <div class="b2b-trend-bars">
+                                            <span class="b2b-bar b2b-neutral" t-attf-style="height: #{pct(m.expected, trendMax)}%"/>
+                                            <span class="b2b-bar b2b-blue" t-attf-style="height: #{pct(m.collected, trendMax)}%"/>
+                                        </div>
+                                        <span class="b2b-axis" t-esc="m.label"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <table t-else="" class="b2b-table">
+                                <thead><tr><th>Month</th><th class="num">Expected</th><th class="num">Collected</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.trend" t-as="m" t-key="m.label">
+                                        <td t-esc="m.label"/>
+                                        <td class="num" t-esc="fmt(m.expected)"/>
+                                        <td class="num" t-esc="fmt(m.collected)"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Overdue ageing</h2></div>
+                            <div class="b2b-hbars">
+                                <t t-foreach="state.data.ageing" t-as="a" t-key="a.label">
+                                    <div class="b2b-hrow" t-on-mouseenter="(ev) => this.tipAmount(ev, a.label, a.count + ' installment(s)', a.amount, 'var(--b2b-critical)')"
+                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <span class="b2b-hlabel" t-esc="a.label"/>
+                                        <span class="b2b-htrack"><span class="b2b-hfill b2b-critical" t-attf-style="width: #{pct(a.amount, ageingMax)}%; opacity: #{0.4 + 0.2 * a_index}"/></span>
+                                        <span class="b2b-hvalue" t-esc="compact(a.amount)"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <p class="b2b-foot">Balance past due date, by days late.</p>
+                        </div>
+                    </section>
+
+    </t>
+    <t t-name="otm_b2b_fee_tracker.CollegeDashboard">
+        <div class="o_b2bfee_dash">
+            <header class="b2b-head">
+                <div>
+                    <h1 class="b2b-title"><t t-esc="state.data ? state.data.college.name : 'College'"/></h1>
+                    <p class="b2b-sub" t-if="state.data">
+                        <t t-if="state.data.college.city"><t t-esc="state.data.college.city"/> · </t>
+                        <t t-if="state.data.college.contact_person"><t t-esc="state.data.college.contact_person"/> · </t>
+                        <t t-if="state.data.college.whatsapp or state.data.college.phone"><i class="fa fa-phone"/> <t t-esc="state.data.college.whatsapp or state.data.college.phone"/> · </t>
+                        <t t-if="state.data.college.email"><t t-esc="state.data.college.email"/> · </t>
+                        <t t-if="state.data.college.owner">Owner: <t t-esc="state.data.college.owner"/></t>
+                    </p>
+                </div>
+                <div class="b2b-filters" t-if="state.data">
+                    <span t-attf-class="b2b-health b2b-health-#{state.data.stats.health}">
+                        <i t-attf-class="fa #{health(state.data.stats.health).icon}"/>
+                        <t t-esc="health(state.data.stats.health).label"/>
+                    </span>
+                    <button class="btn btn-primary" t-on-click="() => this.openPay()" t-att-disabled="!payableBatches.length">
+                        <i class="fa fa-plus"/> Post payment
+                    </button>
+                    <button class="btn btn-secondary" t-on-click="editCollege">Edit college</button>
+                </div>
+            </header>
+
+            <div t-if="state.loading and !state.data" class="b2b-empty">Loading…</div>
+
+            <t t-if="state.data">
+                <div t-att-class="{'b2b-body': true, 'b2b-busy': state.loading}">
+
+                    <!-- Inline payment posting -->
+                    <section class="b2b-card b2b-paybox" t-if="pay.open">
+                        <div class="b2b-card-head">
+                            <h2>Post a payment</h2>
+                            <button class="b2b-link" t-on-click="closePay">Close</button>
+                        </div>
+                        <div class="b2b-payform">
+                            <label>Batch
+                                <select class="form-select" t-on-change="onPayBatch">
+                                    <option value="">Select batch…</option>
+                                    <option t-foreach="payableBatches" t-as="b" t-key="b.id" t-att-value="b.id"
+                                            t-att-selected="b.id === pay.batch_id">
+                                        <t t-esc="b.program"/> · <t t-esc="b.year"/> (pending <t t-esc="fmt(b.pending)"/>)
+                                    </option>
+                                </select>
+                            </label>
+                            <label>Amount received
+                                <input type="number" min="0" step="any" class="form-control" t-att-value="pay.amount"
+                                       t-on-input="(ev) => this.onPayField('amount', ev)"/>
+                            </label>
+                            <label>Payment date
+                                <input type="date" class="form-control" t-att-value="pay.date"
+                                       t-on-input="(ev) => this.onPayField('date', ev)"/>
+                            </label>
+                            <label>Mode
+                                <select class="form-select" t-on-change="(ev) => this.onPayField('payment_mode', ev)">
+                                    <option t-foreach="state.data.modes" t-as="m" t-key="m.id" t-att-value="m.id"
+                                            t-att-selected="m.id === pay.payment_mode" t-esc="m.label"/>
+                                </select>
+                            </label>
+                            <label>Reference / UTR
+                                <input type="text" class="form-control" t-att-value="pay.reference"
+                                       t-on-input="(ev) => this.onPayField('reference', ev)"/>
+                            </label>
+                            <label>Notes
+                                <input type="text" class="form-control" t-att-value="pay.note"
+                                       t-on-input="(ev) => this.onPayField('note', ev)"/>
+                            </label>
+                        </div>
+                        <div class="b2b-payactions">
+                            <button class="btn btn-primary" t-on-click="submitPay" t-att-disabled="pay.busy">
+                                <i class="fa fa-check"/> Post payment
+                            </button>
+                            <span class="b2b-foot">Applied to the oldest unpaid term first. A receipt is sent if email or WhatsApp is on.</span>
+                        </div>
+                    </section>
+
+                    <!-- KPI row -->
+                    <section class="b2b-kpis">
+                        <div class="b2b-kpi">
+                            <span class="b2b-kpi-label">Contract value</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.contract)"/>
+                            <span class="b2b-kpi-note"><t t-esc="state.data.kpis.students"/> students · <t t-esc="state.data.batches.length"/> batch(es)</span>
+                        </div>
+                        <div class="b2b-kpi">
+                            <span class="b2b-kpi-label">Received</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.collected)"/>
+                            <span class="b2b-kpi-note"><t t-esc="state.data.kpis.collection_pct"/>% of contract</span>
+                            <span class="b2b-meter"><span class="b2b-meter-fill" t-attf-style="width: #{meterWidth}%"/></span>
+                        </div>
+                        <div class="b2b-kpi">
+                            <span class="b2b-kpi-label">Not received (pending)</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.pending)"/>
+                            <span class="b2b-kpi-note">across unpaid terms</span>
+                        </div>
+                        <div class="b2b-kpi b2b-kpi-alert">
+                            <span class="b2b-kpi-label"><i class="fa fa-times-circle"/> Overdue</span>
+                            <span class="b2b-kpi-value" t-esc="fmt(state.data.kpis.overdue)"/>
+                            <span class="b2b-kpi-note">
+                                <t t-esc="state.data.kpis.overdue_count"/> term(s)
+                                <t t-if="state.data.stats.oldest_overdue_days"> · oldest <t t-esc="state.data.stats.oldest_overdue_days"/> d</t>
+                            </span>
+                        </div>
+                        <div class="b2b-kpi">
+                            <span class="b2b-kpi-label">On-time payments</span>
+                            <span class="b2b-kpi-value" t-esc="state.data.stats.ontime_pct === null ? '–' : state.data.stats.ontime_pct + '%'"/>
+                            <span class="b2b-kpi-note">by amount, paid on/before due date</span>
+                        </div>
+                        <div class="b2b-kpi">
+                            <span class="b2b-kpi-label">Average delay</span>
+                            <span class="b2b-kpi-value" t-esc="state.data.stats.avg_delay === null ? '–' : state.data.stats.avg_delay + ' d'"/>
+                            <span class="b2b-kpi-note">weighted by amount paid</span>
+                        </div>
+                    </section>
+
+                    <t t-call="otm_b2b_fee_tracker.PaymentTracker"/>
+
+                    <!-- Batches + terms -->
+                    <section class="b2b-row b2b-row-1-1">
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Batches</h2></div>
+                            <div class="b2b-scroll">
+                                <table class="b2b-table" t-if="state.data.batches.length">
+                                    <thead><tr><th>Program</th><th class="num">Students</th><th class="num">Contract</th><th class="num">Received</th><th class="num">Pending</th><th>Status</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="state.data.batches" t-as="b" t-key="b.id">
+                                            <td>
+                                                <button class="b2b-link" t-on-click="() => this.openBatchRecord(b.id)"><t t-esc="b.program"/> · <t t-esc="b.year"/></button>
+                                            </td>
+                                            <td class="num" t-esc="b.students"/>
+                                            <td class="num" t-esc="fmt(b.contract)"/>
+                                            <td class="num" t-esc="fmt(b.collected)"/>
+                                            <td class="num" t-esc="fmt(b.pending)"/>
+                                            <td t-esc="b.state"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div t-else="" class="b2b-empty">No batches yet.</div>
+                            </div>
+                        </div>
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Collection by term</h2></div>
+                            <div class="b2b-hbars" t-if="state.data.by_term.length">
+                                <t t-foreach="state.data.by_term" t-as="term" t-key="term.label">
+                                    <div class="b2b-hrow" t-on-mouseenter="(ev) => this.tipSplit(ev, term)"
+                                         t-on-mousemove="moveTip" t-on-mouseleave="hideTip">
+                                        <span class="b2b-hlabel" t-esc="term.label"/>
+                                        <span class="b2b-htrack"><span class="b2b-hfill b2b-blue" t-attf-style="width: #{pct(term.collected, termMax)}%"/></span>
+                                        <span class="b2b-hvalue" t-esc="compact(term.collected) + ' / ' + compact(term.amount)"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <div t-else="" class="b2b-empty">No terms yet.</div>
+                        </div>
+                    </section>
+
+                    <t t-call="otm_b2b_fee_tracker.TrendAgeing"/>
+
+                    <!-- Payment history -->
+                    <section class="b2b-card">
+                        <div class="b2b-card-head"><h2>Payment history</h2><span class="b2b-foot">Latest 15 · click to open</span></div>
+                        <div class="b2b-scroll">
+                            <table class="b2b-table" t-if="state.data.payments.length">
+                                <thead><tr><th>Receipt</th><th>Date</th><th>Program</th><th>Mode</th><th>Reference</th><th class="num">Amount</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.payments" t-as="p" t-key="p.id">
+                                        <td><button class="b2b-link" t-on-click="() => this.openPaymentRecord(p.id)" t-esc="p.name"/></td>
+                                        <td t-esc="p.date"/>
+                                        <td t-esc="p.program"/>
+                                        <td t-esc="p.mode"/>
+                                        <td t-esc="p.reference or '–'"/>
+                                        <td class="num" t-esc="fmt(p.amount)"/>
+                                        <td t-esc="p.state"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div t-else="" class="b2b-empty">No payments recorded yet.</div>
+                        </div>
+                    </section>
+
+                    <!-- Lists -->
+                    <section class="b2b-row b2b-row-1-1">
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Upcoming dues (30 days)</h2></div>
+                            <table class="b2b-table" t-if="state.data.upcoming.length">
+                                <thead><tr><th>Term</th><th>Due</th><th class="num">Balance</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.upcoming" t-as="u" t-key="u.id">
+                                        <td><t t-esc="u.term"/> · <t t-esc="u.program"/></td>
+                                        <td><t t-esc="u.due_date"/> (<t t-esc="u.days"/> d)</td>
+                                        <td class="num" t-esc="fmt(u.balance)"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div t-else="" class="b2b-empty">Nothing due in the next 30 days.</div>
+                        </div>
+                        <div class="b2b-card">
+                            <div class="b2b-card-head"><h2>Overdue</h2></div>
+                            <table class="b2b-table" t-if="state.data.overdue_list.length">
+                                <thead><tr><th>Term</th><th>Due</th><th class="num">Balance</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.overdue_list" t-as="o" t-key="o.id">
+                                        <td><t t-esc="o.term"/> · <t t-esc="o.program"/></td>
+                                        <td><t t-esc="o.due_date"/> (<t t-esc="-o.days"/> d late)</td>
+                                        <td class="num" t-esc="fmt(o.balance)"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div t-else="" class="b2b-empty">Nothing overdue.</div>
+                        </div>
+                    </section>
+                </div>
+            </t>
             <div t-if="state.tip.show" class="b2b-tip" t-attf-style="left: #{state.tip.x}px; top: #{state.tip.y}px">
                 <div class="b2b-tip-title" t-esc="state.tip.title"/>
                 <div t-foreach="state.tip.rows" t-as="row" t-key="row_index" class="b2b-tip-row">

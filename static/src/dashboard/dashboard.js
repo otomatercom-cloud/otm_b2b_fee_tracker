@@ -292,6 +292,14 @@ export class B2bFeeDashboard extends Component {
             ["due_date", "<=", limit.toISOString().slice(0, 10)],
         ]);
     }
+    openCollege(college) {
+        this.action.doAction({
+            type: "ir.actions.client",
+            tag: "otm_b2b_fee_college_dashboard",
+            name: college.name,
+            context: { college_id: college.id },
+        });
+    }
     openCollegeDues(college) {
         this.openInstallments(`${college.name} – Pending`, [
             ["college_id", "=", college.id],

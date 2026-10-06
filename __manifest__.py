@@ -37,6 +37,7 @@ FIFO allocation and daily installment status refresh.
     "assets": {
         "web.assets_backend": [
             "otm_b2b_fee_tracker/static/src/dashboard/dashboard.js",
+            "otm_b2b_fee_tracker/static/src/dashboard/college_dashboard.js",
             "otm_b2b_fee_tracker/static/src/dashboard/dashboard.xml",
             "otm_b2b_fee_tracker/static/src/dashboard/dashboard.css",
         ],

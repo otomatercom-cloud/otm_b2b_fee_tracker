@@ -49,6 +49,13 @@ class B2bFeeCollege(models.Model):
             rec.collected = sum(batches.mapped("collected"))
             rec.pending = sum(batches.mapped("pending"))
 
+    def action_open_dashboard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.client", "tag": "otm_b2b_fee_college_dashboard",
+            "name": self.name, "context": {"college_id": self.id},
+        }
+
     def action_view_batches(self):
         self.ensure_one()
         return {
