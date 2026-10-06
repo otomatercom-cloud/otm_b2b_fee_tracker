@@ -85,6 +85,21 @@ class B2bFeeInternalNotify(models.AbstractModel):
                     except Exception:
                         _logger.exception("Monday team summary failed for %s", staff.id)
 
+    @api.model
+    def send_test_escalation(self, staff):
+        """Send the escalation template to one recipient, using the most overdue real term
+        (or sample values when nothing is overdue)."""
+        today = fields.Date.context_today(self)
+        inst = self.env["otm.b2bfee.installment"].search([
+            ("balance", ">", 0), ("due_date", "<", today),
+            ("batch_id.state", "=", "running")], order="due_date asc", limit=1)
+        if inst:
+            params = [inst.college_id.name, inst.term_name, inst.program_id.name,
+                      str(inst.days_overdue), self._money(inst.balance)]
+        else:
+            params = ["Sample College", "Term 1", "DipIFR", "9", self._money(102000)]
+        return self._deliver(staff, "staff_escalation", params, _("Escalation test"))
+
     # ------------------------------------------------------------------ events
     @api.model
     def notify_payment(self, payment):

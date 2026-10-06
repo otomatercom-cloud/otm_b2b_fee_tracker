@@ -49,6 +49,21 @@ class B2bFeeStaff(models.Model):
             self.daily_digest, self.weekly_summary = True, False
             self.payment_alerts = True
 
+    def action_send_test_escalation(self):
+        notify = self.env["otm.b2bfee.internal.notify"]
+        sent = 0
+        for rec in self:
+            if notify.send_test_escalation(rec)["sent"]:
+                sent += 1
+        if not sent:
+            raise UserError(_(
+                "Nothing was sent: %s", "; ".join(self.mapped("last_result")) or _("unknown reason")))
+        return {
+            "type": "ir.actions.client", "tag": "display_notification",
+            "params": {"message": _("Test escalation sent to %s person(s).", sent),
+                       "type": "success", "sticky": False},
+        }
+
     def action_send_summary_now(self):
         notify = self.env["otm.b2bfee.internal.notify"]
         sent = 0

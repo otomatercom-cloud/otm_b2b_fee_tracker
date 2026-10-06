@@ -103,3 +103,15 @@ class TestTeamAlerts(TransactionCase):
             action = self.dire.action_send_summary_now()
         self.assertEqual(action["tag"], "display_notification")
         self.assertEqual(self._numbers(post), ["919847022222"])
+
+    def test_07_test_escalation_uses_real_overdue_term(self):
+        with patch(POST, return_value=_ok()) as post:
+            self.dire.action_send_test_escalation()
+        self.assertEqual(self._templates(post), ["team_escalation"])
+        params = [p["text"] for p in post.call_args.kwargs["json"]["template"]["components"][0]["parameters"]]
+        self.assertEqual(len(params), 5)
+        oldest = self.env["otm.b2bfee.installment"].search(
+            [("balance", ">", 0), ("due_date", "<", date.today()),
+             ("batch_id.state", "=", "running")], order="due_date asc", limit=1)
+        self.assertEqual(params[0], oldest.college_id.name)
+        self.assertEqual(params[3], str(oldest.days_overdue))

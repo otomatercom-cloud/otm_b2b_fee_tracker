@@ -25,6 +25,8 @@
                 <header>
                     <button name="action_send_summary_now" string="Send Summary Now" type="object"
                             class="btn-primary" invisible="not id"/>
+                    <button name="action_send_test_escalation" string="Send Test Escalation" type="object"
+                            invisible="not id"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
