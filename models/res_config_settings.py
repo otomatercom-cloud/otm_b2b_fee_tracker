@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models
+import re
+
+from odoo import _, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import convert_file
 
@@ -70,6 +72,21 @@ class ResConfigSettings(models.TransientModel):
         string="Team Escalation Template",
         config_parameter="otm_b2b_fee_tracker.wa_tpl_staff_escalation")
     b2bfee_wa_test_number = fields.Char(string="Test Number")
+
+    def set_values(self):
+        for rec in self:
+            for fname in ("b2bfee_wa_tpl_upcoming", "b2bfee_wa_tpl_overdue", "b2bfee_wa_tpl_receipt",
+                          "b2bfee_wa_tpl_summary", "b2bfee_wa_tpl_staff_payment",
+                          "b2bfee_wa_tpl_staff_escalation"):
+                value = (rec[fname] or "").strip()
+                if value and not re.fullmatch(r"[a-z0-9_]{1,512}", value):
+                    raise UserError(_(
+                        "'%(field)s' must be a WhatsApp template name: only lowercase letters, "
+                        "numbers and underscores (for example b2bfee_team_summary), exactly as "
+                        "shown in WhatsApp Manager. You entered: %(value)s",
+                        field=rec._fields[fname].string, value=value[:60]))
+                rec[fname] = value
+        return super().set_values()
 
     def action_b2bfee_wa_test(self):
         """Save the settings, then send the 'upcoming' template to a test number."""

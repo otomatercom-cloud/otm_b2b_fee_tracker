@@ -10,6 +10,7 @@ _logger = logging.getLogger(__name__)
 
 PARAM = "otm_b2b_fee_tracker."
 GRAPH_URL = "https://graph.facebook.com/%(version)s/%(phone_id)s/messages"
+TEMPLATE_NAME_RE = re.compile(r"[a-z0-9_]{1,512}")
 TEMPLATE_KEYS = {
     "upcoming": "wa_tpl_upcoming",
     "overdue": "wa_tpl_overdue",
@@ -78,6 +79,11 @@ class B2bFeeWhatsapp(models.AbstractModel):
         template = conf["templates"].get(kind)
         if not template:
             result["note"] = "No WhatsApp template name configured for '%s'" % kind
+            return result
+        if not TEMPLATE_NAME_RE.fullmatch(template):
+            result["note"] = ("Invalid WhatsApp template name '%s'. Use only lowercase letters, "
+                              "numbers and underscores, exactly as shown in WhatsApp Manager."
+                              % template[:60])
             return result
         number = self.normalize_number(raw_number, conf["country_code"])
         if not number:

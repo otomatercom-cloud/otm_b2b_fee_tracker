@@ -167,3 +167,16 @@ class TestWhatsapp(TransactionCase):
         self._set("wa_enabled", "no")
         with self.assertRaises(UserError):
             pay.action_send_receipt()
+
+    def test_13_template_name_validation(self):
+        from odoo.exceptions import UserError
+        settings = self.env["res.config.settings"].create({
+            "b2bfee_wa_tpl_summary": "Internal messages. Summary: {{1}} date"})
+        with self.assertRaises(UserError):
+            settings.set_values()
+        # a stored bad name is reported clearly instead of calling Meta
+        self._set("wa_tpl_overdue", "Not A Name {{1}}")
+        with patch(POST) as post:
+            self.first._process_reminder("overdue_1", "overdue", self._conf())
+        post.assert_not_called()
+        self.assertIn("Invalid WhatsApp template name", self.first.log_ids.wa_note)
